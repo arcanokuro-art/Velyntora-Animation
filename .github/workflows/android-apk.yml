@@ -43,7 +43,9 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: gradle :app:connectedDebugAndroidTest --stacktrace
+          script: |
+            gradle :app:connectedDebugAndroidTest --stacktrace
+            adb pull /sdcard/Android/data/app.velyntora.animation/files/animation-editor.png build/animation-editor.png
       - name: Informes Android
         if: always()
         uses: actions/upload-artifact@v4
@@ -52,6 +54,7 @@ jobs:
           path: |
             app/build/reports/
             app/build/outputs/androidTest-results/
+            build/animation-editor.png
       - run: cp app/build/outputs/apk/debug/app-debug.apk Velyntora-Animation-pilot.apk
       - uses: actions/upload-artifact@v4
         with:
