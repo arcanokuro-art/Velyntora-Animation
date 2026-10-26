@@ -16,6 +16,7 @@ public final class EditorNavigator {
   public static void open(Activity host, Uri uri) {
     host.startActivity(
         new Intent(host, art.velyntora.core.AnimationActivity.class)
+            .setAction("app.velyntora.animation.OPEN")
             .setData(uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
   }

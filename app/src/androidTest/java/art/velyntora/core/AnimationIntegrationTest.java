@@ -61,17 +61,84 @@ public final class AnimationIntegrationTest {
             click(a, "Pausar");
             assertNotNull(button(a.getWindow().getDecorView(), "Reproducir"));
           });
-      android.graphics.Bitmap screenshot = i.getUiAutomation().takeScreenshot();
-      assertNotNull(screenshot);
-      try (java.io.OutputStream out =
-          new java.io.FileOutputStream(
-              new java.io.File(a.getExternalFilesDir(null), "animation-editor.png"))) {
-        screenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out);
-      } finally {
-        screenshot.recycle();
+      i.waitForIdleSync();
+      try (android.os.ParcelFileDescriptor command =
+              i.getUiAutomation()
+                  .executeShellCommand("screencap -p /sdcard/Download/animation-editor.png");
+          java.io.InputStream output =
+              new android.os.ParcelFileDescriptor.AutoCloseInputStream(command)) {
+        byte[] bytes = new byte[1024];
+        while (output.read(bytes) != -1) {}
       }
     } finally {
       i.runOnMainSync(a::finish);
+    }
+  }
+
+  @Test
+  public void exportedProjectOpensThroughHomeWithNativeLayers() throws Exception {
+    android.content.Context context = i.getTargetContext();
+    AnimationActivity source =
+        (AnimationActivity)
+            i.startActivitySync(
+                new Intent(context, AnimationActivity.class)
+                    .setAction("app.velyntora.animation.CREATE")
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+    final String[] session = new String[1];
+    final int[] layers = new int[1];
+    i.runOnMainSync(
+        () -> {
+          source.readDrawing().addLayer();
+          layers[0] = source.readDrawing().layerCount();
+          session[0] = source.getPreferences(0).getString("lastSession", null);
+          source.finish();
+        });
+    i.waitForIdleSync();
+    app.velyntora.animation.project.AnimationProject project =
+        new app.velyntora.animation.project.AnimationProject(new java.io.File(session[0]));
+    project.readMetadata();
+    android.content.ContentValues values = new android.content.ContentValues();
+    values.put(android.provider.MediaStore.Downloads.DISPLAY_NAME, "animation-integration.vlyanim");
+    values.put(android.provider.MediaStore.Downloads.MIME_TYPE, "application/zip");
+    android.net.Uri uri =
+        context
+            .getContentResolver()
+            .insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+    assertNotNull(uri);
+    android.app.Activity home = null;
+    android.app.Activity opened = null;
+    Instrumentation.ActivityMonitor monitor =
+        i.addMonitor(AnimationActivity.class.getName(), null, false);
+    try {
+      try (java.io.OutputStream out = context.getContentResolver().openOutputStream(uri)) {
+        project.export(out, false);
+      }
+      home =
+          i.startActivitySync(
+              new Intent(context, app.velyntora.MainActivity.class)
+                  .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+      final android.app.Activity host = home;
+      i.runOnMainSync(() -> app.velyntora.editor.EditorNavigator.open(host, uri));
+      opened = i.waitForMonitorWithTimeout(monitor, 10000);
+      assertNotNull(opened);
+      final AnimationActivity restored = (AnimationActivity) opened;
+      i.waitForIdleSync();
+      i.runOnMainSync(
+          () -> {
+            assertFalse(restored.isFinishing());
+            assertEquals(layers[0], restored.readDrawing().layerCount());
+          });
+    } finally {
+      if (opened != null) {
+        final android.app.Activity activity = opened;
+        i.runOnMainSync(activity::finish);
+      }
+      if (home != null) {
+        final android.app.Activity activity = home;
+        i.runOnMainSync(activity::finish);
+      }
+      i.removeMonitor(monitor);
+      context.getContentResolver().delete(uri, null, null);
     }
   }
 }
