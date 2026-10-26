@@ -1,0 +1,57 @@
+{
+  "id": 126,
+  "name": "z)_Stamp_Grass",
+  "category": "Puntas especiales",
+  "folder": "puntas_especiales/stamp_grass",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 6,
+  "params": [
+    0.64,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.492462
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "f94ffa05688722f99e594aaa505801c7efb6fc9ca8ab2b45a3c08f845fc669e9"
+}

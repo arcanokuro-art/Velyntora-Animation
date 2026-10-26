@@ -1,0 +1,61 @@
+name: Publish tool response APK
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-tool-response-apk.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-custom-canvas
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_SHA: 267551915f25b3a128a0c098b85fdb82356d9720
+      RELEASE_TAG: v0.1.0-custom-canvas-preview
+    steps:
+      - name: Wait for the exact source build and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run_id in 38111250552 38111250543 38111250577; do
+            for attempt in $(seq 1 85); do
+              gh api "repos/$GH_REPO/actions/runs/$run_id" > run.json
+              jq -e --arg sha "$VERIFIED_SHA" '.head_sha == $sha and .head_branch == "main"' run.json
+              if jq -e '.status == "completed"' run.json >/dev/null; then
+                jq -e '.conclusion == "success"' run.json
+                break
+              fi
+              test "$attempt" -lt 85
+              sleep 20
+            done
+          done
+      - name: Download the APK from the successful source build
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 38111250552 --repo "$GH_REPO" --name velyntora-core-debug-apk --dir apk
+          test "$(find apk -name '*.apk' -type f | wc -l)" -eq 1
+          cp apk/*.apk Velyntora-Core-Lienzos.apk
+          sha256sum Velyntora-Core-Lienzos.apk > Velyntora-Core-Lienzos.apk.sha256
+      - name: Publish the updated APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Lienzos personalizados con un presupuesto coherente de 16 millones de píxeles y 8192 px por lado. Corrige el bloqueo de 2560 × 1600 y admite 4K y 4000 × 4000 dentro del presupuesto.
+          Límite compartido por creación, cambio de tamaño, apertura y exportación. El diálogo muestra los límites e incluye presets 2560 × 1600 y 3840 × 2160. Se conserva el presupuesto total de 24 millones de píxeles entre capas.
+          Actualización de pantalla por franjas de hasta 262144 píxeles para evitar un array Java y una copia nativa completa del lienzo durante el refresco.
+          Verificado: creación desde el formulario Android, pinceles clásico y suavizado, undo/redo, PNG, guardado/reapertura de proyecto, 4K y rechazo sin perder el documento. Pruebas nativas del máximo 16M y redimensionado/undo. Herramientas conservadas.
+          APK debug del commit 267551915f25b3a128a0c098b85fdb82356d9720, publicado únicamente tras aprobar compilación, núcleo y Android. SHA256 adjunta.
+          NOTES
+          if ! gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GH_REPO" --target "${{ github.sha }}" --title "Velyntora Core — lienzos personalizados" --notes-file notes.md --prerelease
+          fi
+          gh release upload "$RELEASE_TAG" Velyntora-Core-Lienzos.apk Velyntora-Core-Lienzos.apk.sha256 --repo "$GH_REPO" --clobber

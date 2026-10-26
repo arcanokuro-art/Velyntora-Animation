@@ -1,0 +1,206 @@
+[
+  {
+    "id": 100,
+    "name": "b)_Airbrush_Soft",
+    "category": "Aerógrafos",
+    "folder": "aerografos/airbrush_soft"
+  },
+  {
+    "id": 101,
+    "name": "Airbrush_linear",
+    "category": "Aerógrafos",
+    "folder": "aerografos/airbrush_linear"
+  },
+  {
+    "id": 102,
+    "name": "Airbrush_pressure",
+    "category": "Aerógrafos",
+    "folder": "aerografos/airbrush_pressure"
+  },
+  {
+    "id": 103,
+    "name": "d)_Ink-1_Precision",
+    "category": "Tinta de escritura",
+    "folder": "tinta/ink_1_precision"
+  },
+  {
+    "id": 104,
+    "name": "d)_Ink-2_Fineliner",
+    "category": "Tinta de escritura",
+    "folder": "tinta/ink_2_fineliner"
+  },
+  {
+    "id": 105,
+    "name": "d)_Ink-3_Gpen",
+    "category": "Tinta de escritura",
+    "folder": "tinta/ink_3_gpen"
+  },
+  {
+    "id": 106,
+    "name": "d)_Ink-4_Pen_Rough",
+    "category": "Tinta de escritura",
+    "folder": "tinta/ink_4_pen_rough"
+  },
+  {
+    "id": 107,
+    "name": "d)_Ink-7_Brush_Rough",
+    "category": "Tinta de escritura",
+    "folder": "tinta/ink_7_brush_rough"
+  },
+  {
+    "id": 108,
+    "name": "e)_Marker_Chisel_Smooth",
+    "category": "Marcadores",
+    "folder": "marcadores/marker_chisel_smooth"
+  },
+  {
+    "id": 109,
+    "name": "e)_Marker_Details",
+    "category": "Marcadores",
+    "folder": "marcadores/marker_details"
+  },
+  {
+    "id": 110,
+    "name": "e)_Marker_Dry",
+    "category": "Marcadores",
+    "folder": "marcadores/marker_dry"
+  },
+  {
+    "id": 111,
+    "name": "Pastel_texture_large",
+    "category": "Crayones y pastel",
+    "folder": "crayones_pastel/pastel_texture_large"
+  },
+  {
+    "id": 112,
+    "name": "Pastel_texture_thin",
+    "category": "Crayones y pastel",
+    "folder": "crayones_pastel/pastel_texture_thin"
+  },
+  {
+    "id": 113,
+    "name": "f)_Charcoal_Rock_Soft",
+    "category": "Carboncillo",
+    "folder": "carboncillo/charcoal_rock_soft"
+  },
+  {
+    "id": 114,
+    "name": "h)_Charcoal_pencil_large",
+    "category": "Carboncillo",
+    "folder": "carboncillo/charcoal_pencil_large"
+  },
+  {
+    "id": 115,
+    "name": "h)_Charcoal_Pencil_Medium",
+    "category": "Carboncillo",
+    "folder": "carboncillo/charcoal_pencil_medium"
+  },
+  {
+    "id": 116,
+    "name": "h)_Charcoal_Pencil_Thin",
+    "category": "Carboncillo",
+    "folder": "carboncillo/charcoal_pencil_thin"
+  },
+  {
+    "id": 117,
+    "name": "Oils_bristle",
+    "category": "Óleo",
+    "folder": "oleo/oils_bristle"
+  },
+  {
+    "id": 118,
+    "name": "Oils_knife",
+    "category": "Óleo",
+    "folder": "oleo/oils_knife"
+  },
+  {
+    "id": 119,
+    "name": "f)_Bristles-2_Flat_Rough",
+    "category": "Óleo",
+    "folder": "oleo/bristles_2_flat_rough"
+  },
+  {
+    "id": 120,
+    "name": "f)_Bristles-5_Flat",
+    "category": "Óleo",
+    "folder": "oleo/bristles_5_flat"
+  },
+  {
+    "id": 121,
+    "name": "i)_Wet_Paint",
+    "category": "Óleo",
+    "folder": "oleo/wet_paint"
+  },
+  {
+    "id": 122,
+    "name": "j)_Watercolor_Fringe",
+    "category": "Acuarela",
+    "folder": "acuarela/watercolor_fringe"
+  },
+  {
+    "id": 123,
+    "name": "j)_Watercolor_Texture",
+    "category": "Acuarela",
+    "folder": "acuarela/watercolor_texture"
+  },
+  {
+    "id": 124,
+    "name": "j)_Waterpaint_Hard_Edges",
+    "category": "Acuarela",
+    "folder": "acuarela/waterpaint_hard_edges"
+  },
+  {
+    "id": 125,
+    "name": "j)_Waterpaint_Soft_Edges",
+    "category": "Acuarela",
+    "folder": "acuarela/waterpaint_soft_edges"
+  },
+  {
+    "id": 126,
+    "name": "z)_Stamp_Grass",
+    "category": "Puntas especiales",
+    "folder": "puntas_especiales/stamp_grass"
+  },
+  {
+    "id": 127,
+    "name": "z)_Stamp_Sparkles",
+    "category": "Puntas especiales",
+    "folder": "puntas_especiales/stamp_sparkles"
+  },
+  {
+    "id": 128,
+    "name": "y)_Texture_Spray",
+    "category": "Puntas especiales",
+    "folder": "puntas_especiales/texture_spray"
+  },
+  {
+    "id": 129,
+    "name": "k)_Blender_Basic",
+    "category": "Mezcla",
+    "folder": "mezcla/blender_basic"
+  },
+  {
+    "id": 130,
+    "name": "k)_Blender_Knife_Edge",
+    "category": "Mezcla",
+    "folder": "mezcla/blender_knife_edge"
+  },
+  {
+    "id": 131,
+    "name": "k)_Blender_Rake",
+    "category": "Mezcla",
+    "folder": "mezcla/blender_rake"
+  },
+  {
+    "id": 132,
+    "name": "k)_Blender_Smear",
+    "category": "Mezcla",
+    "folder": "mezcla/blender_smear"
+  },
+  {
+    "id": 133,
+    "name": "k)_Blender_Textured_Soft",
+    "category": "Mezcla",
+    "folder": "mezcla/blender_textured_soft"
+  }
+]

@@ -1,0 +1,11 @@
+package art.velyntora.core;
+
+import android.graphics.*;
+
+/** Tool-local vector icon, rendered by the shared 24 dp drawable. */
+final class TriangleIcon extends ToolIcon {
+  @Override
+  void geometry(Canvas c) {
+    line(c, 12, 3, 22, 21, 2, 21, 12, 3);
+  }
+}

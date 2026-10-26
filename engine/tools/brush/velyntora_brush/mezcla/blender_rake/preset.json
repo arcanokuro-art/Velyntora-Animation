@@ -1,0 +1,65 @@
+{
+  "id": 131,
+  "name": "k)_Blender_Rake",
+  "category": "Mezcla",
+  "folder": "mezcla/blender_rake",
+  "bundle": "collection4",
+  "engine": "colorsmudge",
+  "frames": 1,
+  "params": [
+    0.1,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.25,
+        0.1
+      ],
+      [
+        0.75,
+        0.9
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "cd5ca09fc32ac4a5bac7ed223fed20dc03577e65d5aa58dd5351be36d94ed1bf"
+}

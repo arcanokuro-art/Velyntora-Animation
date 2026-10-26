@@ -1,0 +1,61 @@
+{
+  "id": 124,
+  "name": "j)_Waterpaint_Hard_Edges",
+  "category": "Acuarela",
+  "folder": "acuarela/waterpaint_hard_edges",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 3,
+  "params": [
+    0.2,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.422111
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0678731,
+        0.994975
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "e1c020b76e575227591d7b686b5682080fcde879bc7e446e73d9f8af057672a5"
+}

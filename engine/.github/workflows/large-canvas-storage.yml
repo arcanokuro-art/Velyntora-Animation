@@ -1,0 +1,21 @@
+name: Experimental large canvas storage
+on:
+  push:
+    branches: [codex/large-canvas-12000]
+  workflow_dispatch:
+jobs:
+  storage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Existing modules remain protected
+        run: python scripts/check_modular_boundaries.py
+      - name: Disk-backed blocks and immutable snapshots
+        run: |
+          mkdir -p build
+          g++ -std=c++20 -O2 -Wall -Wextra -Werror tests/tile_surface_tests.cpp -o build/tile_surface_tests
+          /usr/bin/time -v build/tile_surface_tests
+      - name: Sanitizers
+        run: |
+          g++ -std=c++20 -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer tests/tile_surface_tests.cpp -o build/tile_surface_sanitized
+          build/tile_surface_sanitized

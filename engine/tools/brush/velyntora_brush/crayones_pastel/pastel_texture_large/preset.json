@@ -1,0 +1,61 @@
+{
+  "id": 111,
+  "name": "Pastel_texture_large",
+  "category": "Crayones y pastel",
+  "folder": "crayones_pastel/pastel_texture_large",
+  "bundle": "collection3",
+  "engine": "paintbrush",
+  "frames": 1,
+  "params": [
+    0.1,
+    0.0,
+    0.75,
+    1.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.698795
+      ],
+      [
+        0.396396,
+        0.871486
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "48e11553cc3566ed87ebdaa91666b2654cfc0f02a80718033c80fc770a3f1021"
+}

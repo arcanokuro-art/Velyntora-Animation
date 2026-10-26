@@ -1,0 +1,68 @@
+name: Publish verified APK
+on:
+  push:
+    branches: [codex/image-layer-transform]
+    paths: [.github/workflows/publish-verified-apk.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-verified-apk-tools
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_SHA: 3ea4f1eb2aa69abf89b9ab7f2acff0a4b8482db0
+      RELEASE_TAG: v0.1.0-velyntora-brush-preview
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require exact source builds and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run_id in 39304868429 39304868373 39304868541; do
+            for attempt in $(seq 1 85); do
+              gh api "repos/$GH_REPO/actions/runs/$run_id" > run.json
+              jq -e --arg sha "$VERIFIED_SHA" '.head_sha == $sha and .head_branch == "codex/image-layer-transform"' run.json
+              if jq -e '.status == "completed"' run.json >/dev/null; then
+                jq -e '.conclusion == "success"' run.json
+                break
+              fi
+              test "$attempt" -lt 85
+              sleep 20
+            done
+          done
+          gh api "repos/$GH_REPO/compare/$VERIFIED_SHA...$GITHUB_SHA" --jq '.files' | jq -e 'all(.filename == ".github/workflows/publish-verified-apk.yml")'
+      - name: Download the tested APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 39304868429 --repo "$GH_REPO" --name velyntora-core-debug-apk --dir apk
+          test "$(find apk -name '*.apk' -type f | wc -l)" -eq 1
+          cp apk/*.apk Velyntora-Core-Brush-Unificado.apk
+          sha256sum Velyntora-Core-Brush-Unificado.apk > Velyntora-Core-Brush-Unificado.apk.sha256
+      - name: Publish release and assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Versión experimental de la rama codex/image-layer-transform. Main permanece sin cambios; pendiente de revisión y aprobación en dispositivo.
+
+          Colección unificada en tools/brush/velyntora_brush/: los 36 pinceles están dentro de la misma carpeta. La categoría clasico contiene classic y antialiased; se conservan las otras nueve categorías y la separación por pincel.
+
+          Código renombrado a VelyntoraBrushCatalog, VelyntoraBrushRuntime y VelyntoraBrushBridge. Actualizadas referencias Java, JNI, CMake, Gradle, pruebas, extractor y comprobaciones modulares. Identificadores de pincel y claves de preferencias permanecen iguales para mantener selecciones guardadas.
+
+          Reorganización sin cambios a los algoritmos ni parámetros de trazo. Ambos renderizadores históricos conservan sus bytes originales. Archivos fuente de recursos, procedencia, créditos y licencias se conservan sin atribuirse su autoría original. Nombres de código y carpeta propios de Velyntora.
+
+          APK debug de la rama codex/image-layer-transform, condicionado a compilación y pruebas de la revisión exacta. Main permanece sin cambios. SHA-256 adjunta.
+
+          NOTES
+          if ! gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GH_REPO" --target "$GITHUB_SHA" --title "Velyntora Core — colección Velyntora Brush" --notes-file notes.md --prerelease
+          fi
+          gh release upload "$RELEASE_TAG" Velyntora-Core-Brush-Unificado.apk Velyntora-Core-Brush-Unificado.apk.sha256 --repo "$GH_REPO" --clobber

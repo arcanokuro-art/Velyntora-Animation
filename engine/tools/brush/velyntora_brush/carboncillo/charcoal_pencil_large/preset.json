@@ -1,0 +1,65 @@
+{
+  "id": 114,
+  "name": "h)_Charcoal_pencil_large",
+  "category": "Carboncillo",
+  "folder": "carboncillo/charcoal_pencil_large",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 1,
+  "params": [
+    0.2,
+    5.39307,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.497817
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.128414,
+        0.100402
+      ],
+      [
+        0.473896,
+        0.710843
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "337612c63d9af0d1715982a298e400507fa4a2c7f7f7ccc206eb79726beab5b7"
+}

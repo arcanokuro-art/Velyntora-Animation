@@ -1,0 +1,63 @@
+name: Publish updated Line Curve APK
+on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-line-curve-apk.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: publish-line-curve-apk
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_SHA: c029a04b8db089b7f283dde1308fc3741344cc0f
+      RELEASE_TAG: v0.1.0-line-curve-preview
+    steps:
+      - name: Wait for the exact source build and tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          for run_id in 38062261905 38062261903 38062261911; do
+            for attempt in $(seq 1 85); do
+              gh api "repos/$GH_REPO/actions/runs/$run_id" > run.json
+              jq -e --arg sha "$VERIFIED_SHA" '.head_sha == $sha and .head_branch == "main"' run.json
+              if jq -e '.status == "completed"' run.json >/dev/null; then
+                jq -e '.conclusion == "success"' run.json
+                break
+              fi
+              test "$attempt" -lt 85
+              sleep 20
+            done
+          done
+      - name: Download the APK from the successful source build
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download 38062261905 --repo "$GH_REPO" --name velyntora-core-debug-apk --dir apk
+          test "$(find apk -name '*.apk' -type f | wc -l)" -eq 1
+          cp apk/*.apk Velyntora-Core-Linea-Curva.apk
+          sha256sum Velyntora-Core-Linea-Curva.apk > Velyntora-Core-Linea-Curva.apk.sha256
+      - name: Publish the updated APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Línea/Curva reconfigurada: dos extremos al iniciar, puntos añadidos sobre la trayectoria y curvas cardinales que pasan por los nodos.
+          Varias líneas permanecen editables hasta confirmar el conjunto. Enter confirma; Deshacer recupera su geometría editable.
+          Mantener pulsado un nodo permite ajustar la tensión.
+          
+          APK debug para prueba en teléfono, procedente del commit c029a04b8db089b7f283dde1308fc3741344cc0f.
+          Compilación Android y pruebas del núcleo y del emulador aprobadas antes de publicar.
+          Descargar Velyntora-Core-Linea-Curva.apk. Suma SHA-256 adjunta.
+          NOTES
+          if ! gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GH_REPO" --target "$VERIFIED_SHA" --title "Velyntora Core — Línea/Curva actualizada" --notes-file notes.md --prerelease
+          fi
+          gh release upload "$RELEASE_TAG" Velyntora-Core-Linea-Curva.apk Velyntora-Core-Linea-Curva.apk.sha256 --repo "$GH_REPO" --clobber

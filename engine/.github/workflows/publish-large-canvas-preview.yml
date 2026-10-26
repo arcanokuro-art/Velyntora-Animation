@@ -1,0 +1,68 @@
+name: Publish experimental performance APK
+on:
+  push:
+    branches: [codex/large-canvas-12000]
+    paths: [.github/workflows/publish-large-canvas-preview.yml]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: experimental-large-canvas-preview
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      VERIFIED_SHA: b2a574a8951b4f27c67544ae3c2b5ea77b2163f6
+      RELEASE_TAG: v0.1.0-6000px-paged-preview
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require exact experimental source checks
+        run: |
+          set -euo pipefail
+          for run_id in 38179097153 38179097202 38179097154 38179097184; do
+            for attempt in $(seq 1 85); do
+              gh api "repos/$GH_REPO/actions/runs/$run_id" > run.json
+              jq -e --arg sha "$VERIFIED_SHA" '.head_sha == $sha and .head_branch == "codex/large-canvas-12000"' run.json
+              if jq -e '.status == "completed"' run.json >/dev/null; then
+                jq -e '.conclusion == "success"' run.json
+                break
+              fi
+              test "$attempt" -lt 85
+              sleep 20
+            done
+          done
+      - name: Download verified APK
+        run: |
+          set -euo pipefail
+          gh run download 38179097153 --repo "$GH_REPO" --name velyntora-core-debug-apk --dir apk
+          test "$(find apk -name '*.apk' -type f | wc -l)" -eq 1
+          cp apk/*.apk Velyntora-Core-6000px-Experimental.apk
+          sha256sum Velyntora-Core-6000px-Experimental.apk > Velyntora-Core-6000px-Experimental.apk.sha256
+      - name: Publish experimental prerelease
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          Rama experimental; main permanece intacta. Límite: **6.000 × 6.000 px** (36 millones de píxeles). El nombre de la rama es histórico.
+          La importación pide confirmación antes de reducir JPEG, PNG o WebP que supera 6000 px por lado. Se conservan las proporciones: **6067 × 9030 → 4031 × 6000**. Cancelar o una importación fallida conserva el documento anterior. Las imágenes dentro del límite conservan sus píxeles originales.
+          La vista mantiene una imagen completa y acotada mientras se cargan los bloques detallados del zoom. Esto evita los huecos cuadriculados producidos por cachés aún vacías. Se elimina la preparación duplicada de teselas durante las operaciones de capas y de historial. Los bloques usan bordes solapados dentro de una capa SRC para evitar uniones claras al girar y conservar el alfa sin duplicarlo.
+          Deshacer/rehacer distingue llegar al inicio/final del historial de un error real. La disponibilidad se consulta sin modificar la geometría de las herramientas. Las operaciones rápidas no muestran el diálogo de progreso; las largas usan su mensaje específico. Se conserva el historial sin un corte fijo por cantidad de pasos y las herramientas aceptadas.
+          Al deshacer o rehacer se prepara en segundo plano el detalle visible antes de reemplazar la vista. El primer cuadro instalado conserva la nitidez; no se intercala la miniatura ampliada. Incluye una comparación píxel a píxel del primer cuadro con trazos finos, zoom y rotación.
+          Durante zoom y rotación, los bloques detallados de la zona visible se publican como un conjunto. La vista usa una resolución completa, sin mezclar bloques borrosos y nítidos. Al alejar reutiliza detalle más fino ya cargado y agrupa las solicitudes para no acumular trabajo de gestos anteriores. Se conservan límites de memoria y preparación fuera del hilo de interfaz.
+          El detalle visible se compone en una textura acotada antes del filtrado y la rotación, evitando uniones internas entre bloques.
+          Al restaurar el historial se conserva el nivel de detalle que se estaba mostrando y se prepara su textura completa en el trabajador antes de instalarla. Las pulsaciones rápidas de Deshacer/Rehacer se procesan en orden, conservando las rutas de Línea/Curva. Se comprueban giro de 66,5 grados, cambio de nivel de zoom y cuatro pulsaciones seguidas sobre los botones reales.
+          Comprobaciones: límites, importación proporcional y EXIF, cancelación, importación PNG/JPEG, 140 pasos nativos de historial, caché fría a diferentes zooms y rotaciones, bordes de bloques opacos y transparentes, trazos continuos y deshacer/rehacer sobre una imagen grande. Android se verifica con texto normal y grande.
+          Los resultados del emulador no garantizan la fluidez ni ausencia de artefactos en todas las GPU. Versión experimental para comprobar los puntos claros y los bloqueos vistos en el dispositivo físico. Formatos especiales, máscaras densas y Remove AI mantienen requisitos mayores de memoria.
+          APK debug del commit b2a574a8951b4f27c67544ae3c2b5ea77b2163f6, publicado sólo tras aprobar núcleo, almacenamiento, compilación y Android. SHA256 adjunta.
+          NOTES
+          # The release tag points at this publishing commit. The APK remains pinned to VERIFIED_SHA.
+          # Reject any application-code difference between the verified build and this tag.
+          gh api "repos/$GH_REPO/compare/$VERIFIED_SHA...$GITHUB_SHA" --jq '.files' | jq -e 'all(.filename == ".github/workflows/publish-large-canvas-preview.yml")'
+          if ! gh release view "$RELEASE_TAG" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --repo "$GH_REPO" --target "$GITHUB_SHA" --title "Velyntora Core — 6.000 px, Zoom e historial con detalle estable" --notes-file notes.md --prerelease
+          fi
+          gh release upload "$RELEASE_TAG" Velyntora-Core-6000px-Experimental.apk Velyntora-Core-6000px-Experimental.apk.sha256 --repo "$GH_REPO" --clobber

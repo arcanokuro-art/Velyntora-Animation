@@ -1,0 +1,57 @@
+{
+  "id": 103,
+  "name": "d)_Ink-1_Precision",
+  "category": "Tinta de escritura",
+  "folder": "tinta/ink_1_precision",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 1,
+  "params": [
+    0.15,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        1.0
+      ],
+      [
+        1.0,
+        0.526104
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "7968039caf353f0ef79b35a07ca7fc47fa262f8e7afaab2df4b280af1ac20721"
+}

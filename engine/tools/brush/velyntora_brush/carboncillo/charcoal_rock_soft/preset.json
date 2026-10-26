@@ -1,0 +1,61 @@
+{
+  "id": 113,
+  "name": "f)_Charcoal_Rock_Soft",
+  "category": "Carboncillo",
+  "folder": "carboncillo/charcoal_rock_soft",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 4,
+  "params": [
+    0.1,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.783133
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0932203,
+        0.0436681
+      ],
+      [
+        0.758475,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "9fa105b6c9a7331310dd53f913f5c89281cb726b495fea6d73bd00bf619db6e6"
+}
