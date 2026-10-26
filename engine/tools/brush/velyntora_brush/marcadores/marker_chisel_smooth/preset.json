@@ -1,0 +1,61 @@
+{
+  "id": 108,
+  "name": "e)_Marker_Chisel_Smooth",
+  "category": "Marcadores",
+  "folder": "marcadores/marker_chisel_smooth",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 1,
+  "params": [
+    0.04,
+    1.5708,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.126697,
+        1.0
+      ],
+      [
+        1.0,
+        0.115578
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0653266,
+        0.040201
+      ],
+      [
+        0.914573,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "b36ea47e6768214c707c6b1337e26e712e6f66e08bb254caa53913a25e97b5b4"
+}

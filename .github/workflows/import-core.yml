@@ -1,0 +1,38 @@
+name: Integrar Velyntora Core
+on:
+  push:
+    branches: [main]
+    paths: ['scripts/integrate_core.py', '.github/workflows/import-core.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    outputs:
+      source_ref: ${{ steps.import.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Importar instantánea completa y conectar editor
+        id: import
+        run: |
+          if [ ! -d engine ]; then
+            git clone https://github.com/arcanokuro-art/Velyntora-Core.git "$RUNNER_TEMP/velyntora-core"
+            git -C "$RUNNER_TEMP/velyntora-core" checkout 5843440d28eeeb931bef6808dd5c8782854efd44
+            python scripts/integrate_core.py "$RUNNER_TEMP/velyntora-core"
+            python engine/scripts/check_modular_boundaries.py
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add engine app build.gradle settings.gradle README.md docs
+            git commit -m "Integrate full pinned Velyntora Core as Drawing engine library"
+            git push origin HEAD:main
+          fi
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+  verify:
+    needs: import
+    uses: ./.github/workflows/android-apk.yml
+    with:
+      source_ref: ${{ needs.import.outputs.source_ref }}
+    secrets: inherit

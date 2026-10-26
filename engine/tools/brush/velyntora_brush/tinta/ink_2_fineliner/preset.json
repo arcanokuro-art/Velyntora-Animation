@@ -1,0 +1,57 @@
+{
+  "id": 104,
+  "name": "d)_Ink-2_Fineliner",
+  "category": "Tinta de escritura",
+  "folder": "tinta/ink_2_fineliner",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 1,
+  "params": [
+    0.1,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "f21b30ab1be78ab7f60a1e0be55cd05c3a6de9443a688adc0f194e6d5a8b748d"
+}

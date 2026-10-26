@@ -1,0 +1,12 @@
+{
+  "collection3": {
+    "source": "https://github.com/arcanokuro-art/Velyntora-Z/blob/main/krita/data/bundles/Krita_3_Default_Resources.bundle",
+    "sha256": "60f472f2c05c17f1dc56961a0d524aebb3aa06578c70dc8f2d95c84f7939dd0b",
+    "license": "CC0"
+  },
+  "collection4": {
+    "source": "https://github.com/arcanokuro-art/Velyntora-Z/blob/main/krita/data/bundles/Krita_4_Default_Resources.bundle",
+    "sha256": "4180f474052305e9de6eaac1d832c1ddeb0654142bcde2eb2460629cf23796d0",
+    "license": "CC0"
+  }
+}

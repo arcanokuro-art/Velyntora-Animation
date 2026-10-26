@@ -1,0 +1,57 @@
+{
+  "id": 125,
+  "name": "j)_Waterpaint_Soft_Edges",
+  "category": "Acuarela",
+  "folder": "acuarela/waterpaint_soft_edges",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 1,
+  "params": [
+    0.02,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0342751
+      ],
+      [
+        0.872266,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.98995
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "3a76744b8d91d4d5eb97b7d7c4f6cbd98d039743cf3ea7ef194432becd85ddc9"
+}

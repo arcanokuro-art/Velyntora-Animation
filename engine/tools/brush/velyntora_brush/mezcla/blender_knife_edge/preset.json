@@ -1,0 +1,61 @@
+{
+  "id": 130,
+  "name": "k)_Blender_Knife_Edge",
+  "category": "Mezcla",
+  "folder": "mezcla/blender_knife_edge",
+  "bundle": "collection4",
+  "engine": "colorsmudge",
+  "frames": 1,
+  "params": [
+    0.1,
+    0.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.95,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.361737,
+        0.716158
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "1a1aab2d291ebbe88d347d34c25abb9477a8b9fedf89b74dcd4787a06ade38df"
+}

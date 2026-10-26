@@ -1,0 +1,69 @@
+name: Android piloto integrado
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['scripts/integrate_core.py', '.github/workflows/import-core.yml']
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      source_ref:
+        type: string
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: drawing-pilot-build
+  cancel-in-progress: false
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref || github.sha }}
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.12'
+      - name: Verificar arquitectura y motor nativo
+        run: |
+          python engine/scripts/check_modular_boundaries.py
+          cmake -S engine/tests -B build/core-tests -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build/core-tests --parallel 2
+          ctest --test-dir build/core-tests --output-on-failure
+      - run: gradle :app:assembleDebug :app:lintDebug --stacktrace
+      - name: Habilitar KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          script: gradle :app:connectedDebugAndroidTest --stacktrace
+      - name: Informes de pruebas Android
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: drawing-integration-test-results
+          path: |
+            app/build/reports/androidTests/
+            app/build/outputs/androidTest-results/
+      - run: cp app/build/outputs/apk/debug/app-debug.apk Velyntora-Drawing-pilot.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Velyntora-Drawing-pilot
+          path: Velyntora-Drawing-pilot.apk
+          if-no-files-found: error
+      - name: Publicar APK piloto
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view pilot-latest >/dev/null 2>&1 || gh release create pilot-latest --title "Velyntora Drawing · Piloto" --notes "Versión piloto de Velyntora Drawing." --prerelease
+          gh release upload pilot-latest Velyntora-Drawing-pilot.apk --clobber

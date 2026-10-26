@@ -1,0 +1,61 @@
+{
+  "id": 122,
+  "name": "j)_Watercolor_Fringe",
+  "category": "Acuarela",
+  "folder": "acuarela/watercolor_fringe",
+  "bundle": "collection4",
+  "engine": "colorsmudge",
+  "frames": 1,
+  "params": [
+    0.09,
+    0.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.5,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.598394,
+        0.427884
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "5163bbd3bf1b8df6fd19e34a70aec8e25e116db871d634f623084e6cde5ae512"
+}

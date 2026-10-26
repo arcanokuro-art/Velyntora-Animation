@@ -1,0 +1,65 @@
+{
+  "id": 123,
+  "name": "j)_Watercolor_Texture",
+  "category": "Acuarela",
+  "folder": "acuarela/watercolor_texture",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 5,
+  "params": [
+    0.75,
+    0.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.517588
+      ],
+      [
+        0.254831,
+        0.557286
+      ],
+      [
+        0.75,
+        0.9
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "25751c180666cba22ac253a5a7835c40f6ce06dd91bed59f71fe60da4dbebd52"
+}

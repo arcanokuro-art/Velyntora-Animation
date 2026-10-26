@@ -1,0 +1,57 @@
+{
+  "id": 127,
+  "name": "z)_Stamp_Sparkles",
+  "category": "Puntas especiales",
+  "folder": "puntas_especiales/stamp_sparkles",
+  "bundle": "collection4",
+  "engine": "paintbrush",
+  "frames": 1,
+  "params": [
+    0.99,
+    0.0,
+    1.0,
+    0.9,
+    1.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "curves": [
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ],
+    [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        1.0,
+        1.0
+      ]
+    ]
+  ],
+  "sha256": "87235d77cbe0bc9885aaa2d4a0bb40ad437096c119e3af10bd74bfd8e2f882a8"
+}

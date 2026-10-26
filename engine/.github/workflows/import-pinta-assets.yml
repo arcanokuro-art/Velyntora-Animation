@@ -1,0 +1,33 @@
+name: Import Pinta graphics
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/import_pinta_assets.py'
+      - '.github/workflows/import-pinta-assets.yml'
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Import original graphics
+        run: python3 scripts/import_pinta_assets.py
+      - name: Preserve original resource licenses
+        run: |
+          mkdir -p reference/licenses
+          curl -fLsS https://raw.githubusercontent.com/arcanokuro-art/Pinta-2.0/2cfea9cf1eae94e45e9d0ef98d76d9ccf4a98481/license-mit.txt -o reference/licenses/license-mit.txt
+          curl -fLsS https://raw.githubusercontent.com/arcanokuro-art/Pinta-2.0/2cfea9cf1eae94e45e9d0ef98d76d9ccf4a98481/license-pdn.txt -o reference/licenses/license-pdn.txt
+      - name: Commit assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reference/pinta-assets reference/licenses
+          if ! git diff --cached --quiet; then
+            git commit -m "assets: import original Pinta 3.1.2 graphics and licenses"
+            git push
+          fi
