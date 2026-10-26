@@ -1,1 +1,0 @@
-Entrada desde Drawing: nuevo lienzo y apertura pasan por protección de documento y las operaciones originales. Recuperación automática omitida únicamente al recibir una petición explícita. Pantalla completa se restaura al recuperar foco.
