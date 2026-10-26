@@ -1,6 +1,8 @@
-# Velyntora Drawing — piloto integrado
+# Velyntora Animation — base inicial
 
-Nombre completo: Velyntora Drawing. Nombre bajo el icono: V-Drawing.
+Proyecto: Velyntora Animation.
+
+Base copiada de la rama `main` de Velyntora Drawing. Por ahora, el código y la interfaz conservan el funcionamiento de Drawing, incluida la etiqueta `V-Drawing` bajo el icono. La adaptación a Animation está pendiente.
 
 - `app/`: inicio, imagen, logo transparente, aviso piloto, crédito Powered By Zaskar Startup y navegación al editor.
 - `engine/`: instantánea completa de Velyntora-Core; motor C++, herramientas, pinceles, formatos, persistencia, IA Remove, recursos y pruebas.
