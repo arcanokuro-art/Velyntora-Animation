@@ -5,14 +5,13 @@ import java.util.ArrayList;
 
 /** Editable cardinal spline. Every node lies on the rendered curve, as in Pinta. */
 final class CurveDraft {
-  static final float SMOOTH_TENSION = .5f;
   float[] x, y, tension;
   final ArrayList<CurveDraft> others = new ArrayList<>();
 
   CurveDraft(float x0, float y0, float x1, float y1) {
     x = new float[] {x0, x1};
     y = new float[] {y0, y1};
-    tension = new float[] {1f/3f, 1f/3f};
+    tension = new float[] {0, 0};
   }
 
   CurveDraft copy() {
@@ -63,10 +62,12 @@ final class CurveDraft {
     tension[point] = value;
   }
 
-  boolean isCorner(int point) { return tension[point] == 0; }
+  boolean isCorner(int point) {
+    return point > 0 && point < x.length - 1 && tension[point] == 0;
+  }
 
   void setCorner(int point, boolean corner) {
-    setTension(point, corner ? 0 : SMOOTH_TENSION);
+    setTension(point, corner ? 0 : 1f/3f);
   }
 
   int hit(float px, float py, float radius) {
@@ -82,9 +83,7 @@ final class CurveDraft {
   float tangent(int point, boolean horizontal) {
     float[] p = horizontal ? x : y;
     int last = p.length - 1;
-    // Equal smoothing in either direction, independent of the node index.
-    // Zero handles create a cusp; nonzero handles share a tangent across the node.
-    float factor = tension[point] * (point == 0 || point == last ? 1 : .5f);
+    float factor = tension[point] * (point == 0 || point == last ? 1 : point / (float) last);
     return factor * (p[Math.min(last, point + 1)] - p[Math.max(0, point - 1)]);
   }
 
@@ -120,7 +119,7 @@ final class CurveDraft {
     }
     if (index < 0) return -1;
     x = insertAt(x,index,px); y = insertAt(y,index,py);
-    tension = insertAt(tension,index,SMOOTH_TENSION);
+    tension = insertAt(tension,index,1f/3f);
     return index;
   }
 
@@ -131,4 +130,3 @@ final class CurveDraft {
     return result;
   }
 }
-

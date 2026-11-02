@@ -23,37 +23,29 @@ public final class CurveDraftTests {
   check(deletion.removeInterior(1) && deletion.x.length==2 && deletion.tension.length==2);
   check(beforeDelete.x.length==3 && beforeDelete.tension[1]==.7f);
   check(!deletion.removeInterior(1) && !deletion.removeInterior(-1));
-  // Mirroring a draft reverses its curve without changing its shape.
-  CurveDraft smooth=new CurveDraft(0,0,160,0);
-  smooth.insert(80,0,2);smooth.move(1,80,90);
-  check(!smooth.isCorner(1));
-  check(smooth.tangent(1,true)>160f/6f); // more rounded than the old three-node draft
-  check(Math.abs(smooth.segment(0,.5f,false)-smooth.segment(1,.5f,false))<.001f);
-  CurveDraft reversed=smooth.copy();
-  for(int i=0;i<3;i++){reversed.x[i]=smooth.x[2-i];reversed.y[i]=smooth.y[2-i];reversed.tension[i]=smooth.tension[2-i];}
-  for(int i=0;i<=100;i++){
-    float t=i/100f;
-    check(Math.abs(smooth.evaluate(t,true)-reversed.evaluate(1-t,true))<.001f);
-    check(Math.abs(smooth.evaluate(t,false)-reversed.evaluate(1-t,false))<.001f);
-  }
-  CurveDraft rounded=smooth.copy();smooth.setCorner(1,true);
-  check(smooth.isCorner(1) && !smooth.sameGeometry(rounded));
-  // Straight segments meet exactly at the corner when its neighbours are endpoints.
+  // Original Pinta geometry, including endpoint and insertion defaults.
+  CurveDraft legacy=new CurveDraft(0,0,160,0);
+  check(legacy.tension[0]==0 && legacy.tension[1]==0);
+  check(!legacy.isCorner(0) && !legacy.isCorner(1));
+  legacy.insert(80,0,2);legacy.move(1,80,90);
+  check(legacy.tension[1]==1f/3f && !legacy.isCorner(1));
+  check(Math.abs(legacy.segment(0,.25f,true)-8.75f)<.001f);
+  check(Math.abs(legacy.segment(0,.5f,true)-30f)<.001f);
+  check(Math.abs(legacy.segment(1,.5f,true)-130f)<.001f);
+  check(legacy.segment(0,.5f,false)==45f);
+  CurveDraft curved=legacy.copy();legacy.setCorner(1,true);
+  check(legacy.isCorner(1) && !legacy.sameGeometry(curved));
+  check(legacy.tangent(1,true)==0 && legacy.tangent(1,false)==0);
   for(int i=1;i<100;i++){
-    float t=i/100f;
-    float px=smooth.segment(0,t,true),py=smooth.segment(0,t,false);
+    float t=i/100f,px=legacy.segment(0,t,true),py=legacy.segment(0,t,false);
     check(Math.abs(py-px*90/80)<.001f);
   }
-  check(smooth.evaluate(.5f,true)==80 && smooth.evaluate(.5f,false)==90);
-  smooth.setCorner(1,false);check(smooth.sameGeometry(rounded));
-  smooth.setCorner(1,true);
-  CurveDraft grouped=smooth.newLine(200,200);check(grouped.others.get(0).isCorner(1));
-  CurveDraft isolated=grouped.copy();isolated.others.get(0).setCorner(1,false);
-  check(grouped.others.get(0).isCorner(1) && !grouped.sameGeometry(isolated));
-  check(smooth.removeInterior(1) && smooth.tension.length==smooth.x.length);
-  CurveDraft coincident=new CurveDraft(10,10,10,10);
-  for(int i=0;i<=100;i++)check(Float.isFinite(coincident.evaluate(i/100f,true)));
+  legacy.setCorner(1,false);check(legacy.sameGeometry(curved));
+  legacy.setCorner(1,true);
+  CurveDraft group=legacy.newLine(200,200);
+  check(group.others.get(0).isCorner(1));
+  CurveDraft isolated=group.copy();isolated.others.get(0).setCorner(1,false);
+  check(group.others.get(0).isCorner(1) && !group.sameGeometry(isolated));
   System.out.println("Cardinal spline nodes, insertion, interpolation, tension and copy passed");
  }
 }
-

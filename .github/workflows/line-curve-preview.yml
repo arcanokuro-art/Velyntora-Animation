@@ -45,5 +45,7 @@ jobs:
         run: |
           asset="${APP_REPO_NAME}-Linea-Curva.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "$asset"
-          gh release view line-curve-corners-preview >/dev/null 2>&1 || gh release create line-curve-corners-preview --target "$SOURCE_SHA" --title "Línea/Curva · Esquinas y curvas suaves" --notes "APK de prueba: puntos de esquina y curvas más redondeadas. Toca un punto interior para elegir Convertir en esquina o Convertir en curva. Incluye deshacer y rehacer. Pendiente de validación táctil antes de integrar en main." --prerelease
+          gh release view line-curve-corners-preview >/dev/null 2>&1 || gh release create line-curve-corners-preview --target "$SOURCE_SHA" --title "Línea/Curva · Esquinas y curvas originales" --notes "APK de prueba: puntos de esquina y comportamiento original de las curvas. Toca un punto interior para elegir Convertir en esquina o Convertir en curva. Incluye deshacer y rehacer. Pendiente de validación táctil antes de integrar en main." --prerelease
+          gh release edit line-curve-corners-preview --title "Línea/Curva · Esquinas y curvas originales" --notes "APK actualizado: conserva el comportamiento original de las curvas y añade la opción de convertir puntos interiores en esquinas. Incluye deshacer y rehacer. Pendiente de validación táctil antes de integrar en main." --prerelease
+          gh api --method PATCH "repos/${GITHUB_REPOSITORY}/git/refs/tags/line-curve-corners-preview" -f sha="$SOURCE_SHA"
           gh release upload line-curve-corners-preview "$asset" --clobber

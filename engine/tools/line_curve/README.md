@@ -1,9 +1,9 @@
 # Línea/Curva
 
 Arrastrar crea una recta; tocar su trayectoria añade un punto suave. Arrastrar
-los puntos modifica una curva que pasa por todos sus nodos. El suavizado de los
-nodos intermedios es uniforme, independiente de su posición en el trazo, y más
-redondeado. Los puntos añadidos usan tensión 0.5; los extremos usan 1/3.
+los puntos modifica una curva que pasa por todos sus nodos. Las curvas conservan el
+cálculo original de tangentes de Pinta, incluida la ponderación por índice.
+Los puntos añadidos usan tensión 1/3; los extremos usan tensión 0.
 
 Tocar un punto interior existente abre su menú: **Convertir en esquina** crea
 una unión angular, **Convertir en curva** recupera el suavizado y **Borrar punto**
