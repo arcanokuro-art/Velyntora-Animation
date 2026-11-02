@@ -1,0 +1,125 @@
+import app.velyntora.animation.model.AnimationSequence;
+import app.velyntora.animation.playback.PlaybackClock;
+import app.velyntora.animation.storage.AnimationProject;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.zip.*;
+
+public final class AnimationModelTests {
+  static int assertions;
+
+  static void check(boolean condition) {
+    assertions++;
+    if (!condition) throw new AssertionError("Assertion " + assertions);
+  }
+
+  static void rejects(Runnable task) {
+    try {
+      task.run();
+      throw new AssertionError("Expected validation failure");
+    } catch (IllegalArgumentException | IllegalStateException expected) {
+      assertions++;
+    }
+  }
+
+  static void seed(AnimationProject project) throws Exception {
+    String asset = AnimationSequence.uuid();
+    Files.write(project.nativeFile(asset).toPath(), new byte[] {1, 2, 3});
+    Files.write(project.previewFile(asset).toPath(), new byte[] {4, 5, 6});
+    project.sequence.asset(asset);
+    project.checkpoint();
+  }
+
+  public static void main(String[] args) throws Exception {
+    AnimationSequence s = new AnimationSequence(12);
+    rejects(() -> s.delete());
+    rejects(() -> s.fps(0));
+    rejects(() -> s.fps(61));
+    rejects(() -> s.select(1));
+    String asset = AnimationSequence.uuid();
+    s.asset(asset);
+    String first = s.current().id;
+    s.insert(true);
+    check(s.size() == 2 && s.selected() == 1 && s.current().asset.equals(asset));
+    check(!s.current().id.equals(first));
+    s.exposure(3);
+    s.select(0);
+    s.exposure(2);
+    check(s.totalTicks() == 5);
+    check(
+        s.frameAtTick(0) == 0
+            && s.frameAtTick(1) == 0
+            && s.frameAtTick(2) == 1
+            && s.frameAtTick(4) == 1
+            && s.frameAtTick(5) == 0);
+    AnimationSequence copy = s.copy();
+    s.move(1);
+    check(s.current().id.equals(first));
+    s.delete();
+    check(s.size() == 1);
+    s.restore(copy);
+    check(s.size() == 2 && s.current().id.equals(first));
+    rejects(() -> s.exposure(0));
+    rejects(() -> s.replace(Arrays.asList(s.current(), s.current()), 0, 12));
+    PlaybackClock clock = new PlaybackClock(s, 1000);
+    check(clock.frame(1000) == 0);
+    check(clock.frame(1167) == 1);
+    check(clock.frame(1417) == 0);
+    s.fps(60);
+    check(clock.frame(1167) == 1);
+    AnimationProject p =
+        new AnimationProject(
+            Files.createTempDirectory("animation-model").toFile(), "Prueba ñ", 1280, 720, 24);
+    seed(p);
+    p.sequence.insert(true);
+    p.sequence.exposure(4);
+    p.checkpoint();
+    ByteArrayOutputStream data = new ByteArrayOutputStream();
+    p.exportArchive(data);
+    AnimationProject restored =
+        new AnimationProject(Files.createTempDirectory("animation-import").toFile(), "x", 1, 1, 1);
+    restored.importArchive(new ByteArrayInputStream(data.toByteArray()));
+    check(
+        restored.title.equals("Prueba ñ")
+            && restored.sequence.fps() == 24
+            && restored.sequence.size() == 2
+            && restored.sequence.current().exposure == 4);
+    check(restored.width == 1280 && restored.height == 720);
+    check(
+        Arrays.equals(
+            Files.readAllBytes(restored.nativeFile(restored.sequence.current().asset).toPath()),
+            new byte[] {1, 2, 3}));
+    check(
+        new File(restored.directory, "objects").list().length
+            == 2); // Duplicates share immutable assets.
+    String orphan = AnimationSequence.uuid();
+    Files.write(restored.nativeFile(orphan).toPath(), new byte[] {9});
+    restored.collectUnusedObjects();
+    check(!restored.nativeFile(orphan).exists());
+    check(restored.nativeFile(restored.sequence.current().asset).isFile());
+    ByteArrayOutputStream malicious = new ByteArrayOutputStream();
+    try (ZipOutputStream z = new ZipOutputStream(malicious)) {
+      z.putNextEntry(new ZipEntry("../escape"));
+      z.write(0);
+      z.closeEntry();
+    }
+    try {
+      new AnimationProject(Files.createTempDirectory("animation-bad").toFile(), "x", 1, 1, 1)
+          .importArchive(new ByteArrayInputStream(malicious.toByteArray()));
+      throw new AssertionError();
+    } catch (IOException expected) {
+      assertions++;
+    }
+    String old = Files.readString(new File(p.directory, "project.properties").toPath());
+    p.sequence.insert(false);
+    try {
+      p.checkpoint();
+      throw new AssertionError();
+    } catch (IOException expected) {
+      assertions++;
+    }
+    check(Files.readString(new File(p.directory, "project.properties").toPath()).equals(old));
+    System.out.println("Animation model/storage/clock: " + assertions + " assertions passed");
+  }
+}

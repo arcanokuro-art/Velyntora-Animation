@@ -1,24 +1,25 @@
-# Velyntora Animation — base inicial
+# Velyntora Animation — editor de animación piloto
 
-Proyecto: Velyntora Animation.
+Aplicación Android independiente de Zaskar. **Powered By Zaskar Startup**.
 
-Aplicación: **Velyntora Animation**. Etiqueta bajo el icono: **V-Animation**. Identificador Android: `app.velyntora.animation`, independiente de Drawing.
+- Inicio propio de Animation y creación con nombre, dimensiones y FPS.
+- Herramientas y pinceles de Velyntora Core, con capas editables por fotograma.
+- Línea de tiempo con miniaturas, creación, duplicación, eliminación y reordenación.
+- Exposición de 1 a 120 unidades por fotograma y reproducción en bucle de 1 a 60 FPS.
+- Piel de cebolla roja/azul de los fotogramas adyacentes.
+- Guardado de sesiones, proyectos recientes y archivos `.vlyanim` con capas.
+- Exportación de secuencia PNG a resolución completa con `timing.csv`.
 
-Base procedente de la rama `main` de Velyntora Drawing. La identidad de la aplicación y su imagen inicial ya corresponden a Animation; actualmente conserva el editor base. La línea de tiempo y las demás funciones de animación están pendientes.
+La rama `feature/animation-editor` contiene el piloto 0.3.0. Se valida antes de proponer su incorporación a `main`. El APK de pruebas se publica bajo `animation-preview` cuando termina correctamente GitHub Actions.
 
-- `app/`: inicio, imagen, logo transparente, aviso piloto, crédito Powered By Zaskar Startup y navegación al editor.
-- `engine/`: instantánea completa de Velyntora-Core; motor C++, herramientas, pinceles, formatos, persistencia, IA Remove, recursos y pruebas.
-- `:drawing-engine`: biblioteca Android en `engine/app`; mantiene el namespace `art.velyntora.core` y las firmas JNI.
-- `docs/core-source.json`: revisión de origen y SHA-256 de todos sus archivos.
+## Arquitectura
 
-Crear animación abre el formulario de dimensiones original del editor. Abrir imagen pasa su URI al importador original. Atrás usa la protección de cambios de Core y vuelve al inicio. Se mantiene pantalla completa en ambos entornos.
+`app/.../animation/` separa modelo, almacenamiento, sesión, caché, línea de tiempo, reproducción, piel de cebolla y configuración. `engine/` conserva el motor y sus herramientas. Detalles y límites en [docs/animation/README.md](docs/animation/README.md).
 
-Los proyectos recientes y las preferencias del inicio siguen pendientes; los controles informan de ello. Las opciones del editor Core permanecen disponibles.
+## Compilación y validación
 
-Compilar con JDK 17, Gradle 8.12, SDK 35 y CMake 3.22.1: `gradle :app:assembleDebug :app:lintDebug`.
-El modelo MI-GAN se descarga durante la compilación y se verifica con SHA-256; la aplicación lo incluye para uso sin conexión.
+JDK 17, Gradle 8.12, SDK 35, CMake 3.22.1. Compilar: `gradle :app:assembleDebug :app:lintDebug :app:assembleDebugAndroidTest`.
 
-Pruebas nativas: `cmake -S engine/tests -B build/core-tests && cmake --build build/core-tests --parallel 2 && ctest --test-dir build/core-tests --output-on-failure`.
-Validación modular: `python engine/scripts/check_modular_boundaries.py`.
+GitHub Actions ejecuta las pruebas de modelo/archivo/reloj, las comprobaciones modulares, las pruebas C++ y la integración Android. El modelo MI-GAN se descarga y verifica durante la compilación; se incluye para uso sin conexión.
 
-APK piloto: `Velyntora-Animation-pilot.apk`, publicado en Releases al completar la validación de GitHub Actions.
+Audio, interpolación IA, MP4/GIF animado e historial global de la línea de tiempo siguen pendientes. Este es un piloto funcional, no una declaración de aplicación terminada al 100 %.

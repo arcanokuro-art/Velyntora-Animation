@@ -7,5 +7,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name="art.velyntora.core.AnimationActivity" android:label="Velyntora Animation" android:exported="false" android:launchMode="singleTask" android:configChanges="orientation|screenSize|smallestScreenSize|fontScale" android:theme="@android:style/Theme.Material.NoActionBar" />
     </application>
 </manifest>
