@@ -272,4 +272,63 @@ public final class AnimationEditorTest {
       if (png != null) i.getTargetContext().getContentResolver().delete(png, null, null);
     }
   }
+  private void stroke(AnimationActivity host, int color) {
+    i.runOnMainSync(() -> {
+      DrawingView.nativeBeginEdit();
+      DrawingView.nativeStroke(12, 20, 72, 20, 3, color);
+      canvas(host).viewportChanged();
+    });
+  }
+
+  private void historyClick(AnimationActivity host, String label, int expected) {
+    click(host, label);
+    await(() -> host.readProjectProgress() == null
+        && DrawingView.nativePickColor(40, 20) == expected);
+  }
+
+  @Test
+  public void undoRedoSurviveFrameSwitchesAndAutosave() throws Exception {
+    AnimationActivity host = launch(null);
+    try {
+      idle(host, 1, 0);
+      final int[] blank = new int[1];
+      i.runOnMainSync(() -> blank[0] = DrawingView.nativePickColor(40, 20));
+      stroke(host, 0xff000000);
+      i.runOnMainSync(() -> assertEquals(0xff000000, DrawingView.nativePickColor(40, 20)));
+      i.runOnMainSync(() -> host.add(false));
+      idle(host, 2, 1);
+      stroke(host, 0xffff0000);
+      i.runOnMainSync(() -> host.select(0));
+      idle(host, 2, 0);
+      historyClick(host, "Deshacer", blank[0]);
+      i.runOnMainSync(() -> host.select(1));
+      idle(host, 2, 1);
+      i.runOnMainSync(() -> assertEquals(0xffff0000, DrawingView.nativePickColor(40, 20)));
+      historyClick(host, "Deshacer", blank[0]);
+      historyClick(host, "Rehacer", 0xffff0000);
+      i.runOnMainSync(() -> host.select(0));
+      idle(host, 2, 0);
+      historyClick(host, "Rehacer", 0xff000000);
+      historyClick(host, "Deshacer", blank[0]);
+      // Run the actual idle-save callback: saving must not consume undo or redo.
+      i.runOnMainSync(() -> {
+        try {
+          java.lang.reflect.Field f = AnimationActivity.class.getDeclaredField("saveWhenIdle");
+          f.setAccessible(true);((Runnable)f.get(host)).run();
+          java.lang.reflect.Field p = AnimationActivity.class.getDeclaredField("progress");
+          p.setAccessible(true);
+          assertEquals(View.GONE, ((View)p.get(host)).getVisibility());
+        } catch (ReflectiveOperationException e) { throw new AssertionError(e); }
+      });
+      await(() -> !busy(host));
+      historyClick(host, "Rehacer", 0xff000000);
+      historyClick(host, "Deshacer", blank[0]);
+      historyClick(host, "Rehacer", 0xff000000);
+    } finally {
+      if (!host.isDestroyed()) {
+        i.runOnMainSync(host::onBackPressed);
+        await(host::isDestroyed);
+      }
+    }
+  }
 }

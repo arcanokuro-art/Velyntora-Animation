@@ -41,6 +41,7 @@ final class AnimationSession {
   void create(Settings settings) throws IOException {
     if (project != null) capture();
     AnimationProject old = project;
+    if (old != null) adapter.rememberHistory(old);
     AnimationProject next = fresh(settings);
     try {
       adapter.create(settings.width, settings.height);
@@ -48,6 +49,7 @@ final class AnimationSession {
       savedAsset = null;
       capture();
       changedDocument = true;
+      FrameDocumentAdapter.clearHistories();
     } catch (IOException error) {
       project = old;
       if (old != null) loadCurrent();
@@ -75,12 +77,14 @@ final class AnimationSession {
 
   private void replace(AnimationProject next) throws IOException {
     AnimationProject old = project;
+    if (old != null) adapter.rememberHistory(old);
     try {
       adapter.load(next, next.sequence.current().asset);
       project = next;
       savedAsset = next.sequence.current().asset;
       savedRevision = adapter.revision();
       changedDocument = true;
+      FrameDocumentAdapter.clearHistories();
     } catch (IOException error) {
       if (old != null) loadCurrent();
       throw error;
@@ -116,6 +120,7 @@ final class AnimationSession {
 
   private void loadCurrent() throws IOException {
     adapter.load(project, project.sequence.current().asset);
+    adapter.recallHistory(project);
     savedAsset = project.sequence.current().asset;
     savedRevision = adapter.revision();
     changedDocument = true;
@@ -124,6 +129,7 @@ final class AnimationSession {
   void mutate(Mutation mutation, boolean blank, boolean reload) throws IOException {
     capture();
     AnimationSequence before = project.sequence.copy();
+    adapter.rememberHistory(project);
     try {
       mutation.apply(project.sequence);
       if (blank) {
@@ -136,6 +142,10 @@ final class AnimationSession {
         project.checkpoint();
         project.collectUnusedObjects();
       }
+      java.util.HashSet<String> retained = new java.util.HashSet<>();
+      for (int i=0;i<project.sequence.size();i++) retained.add(project.sequence.frame(i).id);
+      for (int i=0;i<before.size();i++)
+        if (!retained.contains(before.frame(i).id)) adapter.forgetHistory(project,before.frame(i).id);
     } catch (IOException | RuntimeException error) {
       project.sequence.restore(before);
       loadCurrent();
@@ -151,6 +161,7 @@ final class AnimationSession {
   void exportPng(OutputStream output) throws IOException {
     capture();
     AnimationSequence sequence = project.sequence;
+    adapter.rememberHistory(project);
     try (ZipOutputStream zip = new ZipOutputStream(output)) {
       zip.putNextEntry(new ZipEntry("timing.csv"));
       StringBuilder timing = new StringBuilder("frame,exposure,fps\n");

@@ -9,6 +9,23 @@ import java.io.*;
 /** Worker-side bridge: native layered documents + bounded proxies; no Android Views touched. */
 final class FrameDocumentAdapter {
   private final DrawingView drawing;
+  static native void saveHistory(String key) throws IOException;
+  static native void restoreHistory(String key) throws IOException;
+  static native void dropHistory(String key);
+  static native void clearHistories();
+
+  private String historyKey(AnimationProject project, String id) {
+    return project.directory.getAbsolutePath() + "/" + id;
+  }
+  void rememberHistory(AnimationProject project) throws IOException {
+    saveHistory(historyKey(project, project.sequence.current().id));
+  }
+  void recallHistory(AnimationProject project) throws IOException {
+    restoreHistory(historyKey(project, project.sequence.current().id));
+  }
+  void forgetHistory(AnimationProject project, String id) {
+    dropHistory(historyKey(project, id));
+  }
 
   FrameDocumentAdapter(DrawingView drawing) {
     this.drawing = drawing;

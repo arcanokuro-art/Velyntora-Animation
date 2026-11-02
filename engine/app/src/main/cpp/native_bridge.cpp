@@ -19,3 +19,5 @@
 #include "text/TextPreviewBridge.inc"
 
 #include "brush/VelyntoraBrushBridge.inc"
+
+#include "animation/FrameHistory.inc"

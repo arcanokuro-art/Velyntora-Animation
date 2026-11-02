@@ -42,7 +42,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
             autosave.postDelayed(this, 1000);
             return;
           }
-          if (session.hasChanges()) runIO("Guardando sesión…", session::capture, null);
+          if (session.hasChanges()) runIO(null, session::capture, null);
         }
       };
 
@@ -62,7 +62,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     progress.setBackgroundColor(0xff174e8e);
     progress.setPadding(dp(8), dp(4), dp(8), dp(4));
     progress.setVisibility(View.GONE);
-    root.addView(progress, 0, new LinearLayout.LayoutParams(-1, -2));
+    // Progress belongs over the canvas; it must not shift the editor layout.
     timeline = new TimelinePanel(this, cache, this);
     root.addView(timeline, new LinearLayout.LayoutParams(-1, -2));
     preview = new ImageView(this);
@@ -122,6 +122,10 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     if (preview.getParent() instanceof ViewGroup)
       ((ViewGroup) preview.getParent()).removeView(preview);
     readWorkspaceFrame().addView(preview, new android.widget.FrameLayout.LayoutParams(-1, -1));
+    if (progress.getParent() instanceof ViewGroup)
+      ((ViewGroup) progress.getParent()).removeView(progress);
+    readWorkspaceFrame().addView(progress,
+        new android.widget.FrameLayout.LayoutParams(-1, -2, Gravity.TOP));
   }
 
   @Override
@@ -149,7 +153,13 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     readDrawing().confirmCurve();
     busy = true;
     progress.setText(label);
-    progress.setVisibility(View.VISIBLE);
+    Runnable showProgress = () -> {
+      if (busy && !isDestroyed() && label != null) {
+        progress.setVisibility(View.VISIBLE);
+        progress.bringToFront();
+      }
+    };
+    if (label != null) autosave.postDelayed(showProgress, 350);
     IO.execute(
         () -> {
           Throwable failure = null;
@@ -161,6 +171,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
           final Throwable error = failure;
           runOnUiThread(
               () -> {
+                autosave.removeCallbacks(showProgress);
                 if (isDestroyed()) return;
                 busy = false;
                 progress.setVisibility(View.GONE);
@@ -552,6 +563,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     autosave.removeCallbacks(saveWhenIdle);
     stopPlayback();
     cache.close();
+    IO.execute(FrameDocumentAdapter::clearHistories);
     super.onDestroy();
   }
 }
