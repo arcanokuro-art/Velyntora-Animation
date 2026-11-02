@@ -23,6 +23,29 @@ public final class CurveDraftTests {
   check(deletion.removeInterior(1) && deletion.x.length==2 && deletion.tension.length==2);
   check(beforeDelete.x.length==3 && beforeDelete.tension[1]==.7f);
   check(!deletion.removeInterior(1) && !deletion.removeInterior(-1));
+  // Original Pinta geometry, including endpoint and insertion defaults.
+  CurveDraft legacy=new CurveDraft(0,0,160,0);
+  check(legacy.tension[0]==0 && legacy.tension[1]==0);
+  check(!legacy.isCorner(0) && !legacy.isCorner(1));
+  legacy.insert(80,0,2);legacy.move(1,80,90);
+  check(legacy.tension[1]==1f/3f && !legacy.isCorner(1));
+  check(Math.abs(legacy.segment(0,.25f,true)-8.75f)<.001f);
+  check(Math.abs(legacy.segment(0,.5f,true)-30f)<.001f);
+  check(Math.abs(legacy.segment(1,.5f,true)-130f)<.001f);
+  check(legacy.segment(0,.5f,false)==45f);
+  CurveDraft curved=legacy.copy();legacy.setCorner(1,true);
+  check(legacy.isCorner(1) && !legacy.sameGeometry(curved));
+  check(legacy.tangent(1,true)==0 && legacy.tangent(1,false)==0);
+  for(int i=1;i<100;i++){
+    float t=i/100f,px=legacy.segment(0,t,true),py=legacy.segment(0,t,false);
+    check(Math.abs(py-px*90/80)<.001f);
+  }
+  legacy.setCorner(1,false);check(legacy.sameGeometry(curved));
+  legacy.setCorner(1,true);
+  CurveDraft group=legacy.newLine(200,200);
+  check(group.others.get(0).isCorner(1));
+  CurveDraft isolated=group.copy();isolated.others.get(0).setCorner(1,false);
+  check(group.others.get(0).isCorner(1) && !group.sameGeometry(isolated));
   System.out.println("Cardinal spline nodes, insertion, interpolation, tension and copy passed");
  }
 }

@@ -62,6 +62,14 @@ final class CurveDraft {
     tension[point] = value;
   }
 
+  boolean isCorner(int point) {
+    return point > 0 && point < x.length - 1 && tension[point] == 0;
+  }
+
+  void setCorner(int point, boolean corner) {
+    setTension(point, corner ? 0 : 1f/3f);
+  }
+
   int hit(float px, float py, float radius) {
     int point = -1;
     double best = radius;
