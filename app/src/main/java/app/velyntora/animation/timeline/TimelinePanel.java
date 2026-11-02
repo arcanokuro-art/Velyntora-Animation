@@ -102,6 +102,7 @@ public final class TimelinePanel extends LinearLayout {
           setPadding(0, 0, 0, insets.getSystemWindowInsetBottom());
           return insets;
         });
+    arrange();
     requestApplyInsets();
   }
 
@@ -175,21 +176,33 @@ public final class TimelinePanel extends LinearLayout {
   }
 
   private void arrange() {
-    if (transport.getParent() != null) ((ViewGroup) transport.getParent()).removeView(transport);
-    if (editing.getParent() != null) ((ViewGroup) editing.getParent()).removeView(editing);
-    toolbar.removeAllViews();
-    toolbar.setOrientation(HORIZONTAL);
-    // Measure both groups at their natural width before fitting the viewport.
-    // A plain LinearLayout can measure the second group with no width left.
     HorizontalScrollView viewport = new HorizontalScrollView(getContext());
     viewport.setHorizontalScrollBarEnabled(false);
     viewport.setFillViewport(true);
-    LinearLayout controls = row();
-    viewport.addView(controls);
+    ViewGroup controls =
+        new ViewGroup(getContext()) {
+          protected void onMeasure(int widthSpec, int heightSpec) {
+            int unconstrained = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+            int height = MeasureSpec.makeMeasureSpec(dp(48), MeasureSpec.EXACTLY);
+            transport.measure(unconstrained, height);
+            editing.measure(unconstrained, height);
+            setMeasuredDimension(
+                resolveSize(transport.getMeasuredWidth() + editing.getMeasuredWidth(), widthSpec),
+                resolveSize(dp(48), heightSpec));
+          }
+
+          protected void onLayout(boolean changed, int l, int t, int r, int b) {
+            int leftWidth = transport.getMeasuredWidth();
+            int rightWidth = editing.getMeasuredWidth();
+            transport.layout(0, 0, leftWidth, getHeight());
+            int rightStart = Math.max(leftWidth, getWidth() - rightWidth);
+            editing.layout(rightStart, 0, rightStart + rightWidth, getHeight());
+          }
+        };
+    controls.addView(transport, new ViewGroup.LayoutParams(-2, -1));
+    controls.addView(editing, new ViewGroup.LayoutParams(-2, -1));
+    viewport.addView(controls, new android.widget.FrameLayout.LayoutParams(-2, -1));
     toolbar.addView(viewport, new LayoutParams(-1, dp(48)));
-    controls.addView(transport, new LayoutParams(-2, dp(48)));
-    controls.addView(new View(getContext()), new LayoutParams(0, 1, 1));
-    controls.addView(editing, new LayoutParams(-2, dp(48)));
   }
 
   public void bind(AnimationProject project, boolean playing, boolean onion) {
@@ -295,7 +308,6 @@ public final class TimelinePanel extends LinearLayout {
           m.show();
         });
     put(editing, more, -2);
-    if (toolbar.getChildCount() == 0) arrange();
     scroll.post(
         () ->
             scroll.smoothScrollTo(
