@@ -51,6 +51,7 @@ jobs:
           profile: pixel_2
           disable-animations: true
           script: |
+            adb shell settings put secure immersive_mode_confirmations confirmed
             gradle :app:connectedDebugAndroidTest --stacktrace; result=$?; adb pull /sdcard/Download/animation-editor-preview.png build/animation-editor.png; adb pull /sdcard/Download/animation-editor-phone.png build/animation-editor-phone.png; exit "$result"
             test -f build/animation-editor.png && test -s build/animation-editor.png
       - name: Informes y captura Android

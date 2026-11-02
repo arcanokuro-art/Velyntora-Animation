@@ -251,7 +251,12 @@ public final class AnimationEditorTest {
       i.runOnMainSync(
           () -> {
             for (String label : new String[] {"Duplicar", "Eliminar", "Más opciones"}) {
-              Button control = button(tablet.getWindow().getDecorView(), label);
+              View timeline =
+                  find(
+                      tablet.getWindow().getDecorView(),
+                      app.velyntora.animation.timeline.TimelinePanel.class);
+              assertNotNull(timeline);
+              Button control = button(timeline, label);
               android.graphics.Rect visible = new android.graphics.Rect();
               assertNotNull(label, control);
               assertTrue(label, control.getGlobalVisibleRect(visible));
@@ -272,18 +277,21 @@ public final class AnimationEditorTest {
       if (png != null) i.getTargetContext().getContentResolver().delete(png, null, null);
     }
   }
+
   private void stroke(AnimationActivity host, int color) {
-    i.runOnMainSync(() -> {
-      DrawingView.nativeBeginEdit();
-      DrawingView.nativeStroke(12, 20, 72, 20, 3, color);
-      canvas(host).viewportChanged();
-    });
+    i.runOnMainSync(
+        () -> {
+          DrawingView.nativeBeginEdit();
+          DrawingView.nativeStroke(12, 20, 72, 20, 3, color);
+          canvas(host).viewportChanged();
+        });
   }
 
   private void historyClick(AnimationActivity host, String label, int expected) {
     click(host, label);
-    await(() -> host.readProjectProgress() == null
-        && DrawingView.nativePickColor(40, 20) == expected);
+    await(
+        () ->
+            host.readProjectProgress() == null && DrawingView.nativePickColor(40, 20) == expected);
   }
 
   @Test
@@ -311,15 +319,19 @@ public final class AnimationEditorTest {
       historyClick(host, "Rehacer", 0xff000000);
       historyClick(host, "Deshacer", blank[0]);
       // Run the actual idle-save callback: saving must not consume undo or redo.
-      i.runOnMainSync(() -> {
-        try {
-          java.lang.reflect.Field f = AnimationActivity.class.getDeclaredField("saveWhenIdle");
-          f.setAccessible(true);((Runnable)f.get(host)).run();
-          java.lang.reflect.Field p = AnimationActivity.class.getDeclaredField("progress");
-          p.setAccessible(true);
-          assertEquals(View.GONE, ((View)p.get(host)).getVisibility());
-        } catch (ReflectiveOperationException e) { throw new AssertionError(e); }
-      });
+      i.runOnMainSync(
+          () -> {
+            try {
+              java.lang.reflect.Field f = AnimationActivity.class.getDeclaredField("saveWhenIdle");
+              f.setAccessible(true);
+              ((Runnable) f.get(host)).run();
+              java.lang.reflect.Field p = AnimationActivity.class.getDeclaredField("progress");
+              p.setAccessible(true);
+              assertEquals(View.GONE, ((View) p.get(host)).getVisibility());
+            } catch (ReflectiveOperationException e) {
+              throw new AssertionError(e);
+            }
+          });
       await(() -> !busy(host));
       historyClick(host, "Rehacer", 0xff000000);
       historyClick(host, "Deshacer", blank[0]);
