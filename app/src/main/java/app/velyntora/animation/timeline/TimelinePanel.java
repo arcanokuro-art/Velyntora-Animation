@@ -180,16 +180,16 @@ public final class TimelinePanel extends LinearLayout {
     if (editing.getParent() != null) ((ViewGroup) editing.getParent()).removeView(editing);
     toolbar.removeAllViews();
     toolbar.setOrientation(HORIZONTAL);
-    LinearLayout controls = toolbar;
-    if (compact) {
-      HorizontalScrollView viewport = new HorizontalScrollView(getContext());
-      viewport.setHorizontalScrollBarEnabled(false);
-      controls = row();
-      viewport.addView(controls);
-      toolbar.addView(viewport, new LayoutParams(-1, dp(48)));
-    }
+    // Measure both groups at their natural width before fitting the viewport.
+    // A plain LinearLayout can measure the second group with no width left.
+    HorizontalScrollView viewport = new HorizontalScrollView(getContext());
+    viewport.setHorizontalScrollBarEnabled(false);
+    viewport.setFillViewport(true);
+    LinearLayout controls = row();
+    viewport.addView(controls);
+    toolbar.addView(viewport, new LayoutParams(-1, dp(48)));
     controls.addView(transport, new LayoutParams(-2, dp(48)));
-    if (!compact) controls.addView(new View(getContext()), new LayoutParams(0, 1, 1));
+    controls.addView(new View(getContext()), new LayoutParams(0, 1, 1));
     controls.addView(editing, new LayoutParams(-2, dp(48)));
   }
 
