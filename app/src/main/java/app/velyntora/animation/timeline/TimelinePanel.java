@@ -42,7 +42,6 @@ public final class TimelinePanel extends LinearLayout {
   private final LinearLayout frames;
   private int selected, count;
   private final Paint playhead = new Paint(3);
-  private boolean compact;
 
   public TimelinePanel(Context c, FramePreviewCache cache, Actions actions) {
     super(c);
@@ -191,15 +190,6 @@ public final class TimelinePanel extends LinearLayout {
     controls.addView(transport, new LayoutParams(-2, dp(48)));
     controls.addView(new View(getContext()), new LayoutParams(0, 1, 1));
     controls.addView(editing, new LayoutParams(-2, dp(48)));
-  }
-
-  protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-    super.onSizeChanged(w, h, oldw, oldh);
-    boolean small = w < dp(850);
-    if (small != compact || toolbar.getChildCount() == 0) {
-      compact = small;
-      arrange();
-    }
   }
 
   public void bind(AnimationProject project, boolean playing, boolean onion) {
