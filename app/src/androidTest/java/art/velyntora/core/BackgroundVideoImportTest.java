@@ -67,7 +67,7 @@ public final class BackgroundVideoImportTest {
   }finally{
    if(job!=null&&!job.terminal())VideoImportManager.signal(c,job,"cancel");
    VideoImportJob.active(c).delete();
-   if(!host.isDestroyed())i.runOnMainSync(host::onBackPressed);
+   if(!host.isDestroyed()){i.runOnMainSync(host::onBackPressed);await(host::isDestroyed);}
    file.delete();
   }
  }

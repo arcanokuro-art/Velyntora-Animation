@@ -69,7 +69,10 @@ public final class VideoImportService extends Service {
     }
    });
    return START_STICKY;
-  }catch(Exception e){stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();return START_NOT_STICKY;}
+  }catch(Exception e){
+   if(job!=null)try{job.status("failed",Integer.parseInt(job.status().getProperty("completed","0")),e.getMessage());}catch(Exception ignored){}
+   stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();return START_NOT_STICKY;
+  }
  }
  @Override public void onTimeout(int startId,int type){stopping.set(true);stopForeground(STOP_FOREGROUND_REMOVE);stopSelf();}
  public void onDestroy(){stopping.set(true);worker.shutdown();super.onDestroy();}
