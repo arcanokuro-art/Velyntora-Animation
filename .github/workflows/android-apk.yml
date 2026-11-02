@@ -68,3 +68,7 @@ jobs:
           gh release view pilot-latest >/dev/null 2>&1 || gh release create pilot-latest --title "Velyntora Animation · Piloto" --notes "Versión piloto de Velyntora Animation." --prerelease
           gh release edit pilot-latest --title "Velyntora Animation · Piloto" --notes "Versión piloto de Velyntora Animation." --prerelease
           gh release upload pilot-latest Velyntora-Animation-pilot.apk --clobber
+          obsolete_asset_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/pilot-latest" --jq '.assets[] | select(.name == "Velyntora-Drawing-pilot.apk") | .id')"
+          if [ -n "$obsolete_asset_id" ]; then
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/releases/assets/${obsolete_asset_id}"
+          fi
