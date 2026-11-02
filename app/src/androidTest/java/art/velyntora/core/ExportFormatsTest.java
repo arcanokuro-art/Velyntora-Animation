@@ -65,6 +65,14 @@ public final class ExportFormatsTest {
      }else if(kind==ExportKind.PROJECT||kind==ExportKind.PNG_SEQUENCE){
       try(ZipFile zip=new ZipFile(file)){assertNotNull(zip.getEntry(kind==ExportKind.PROJECT?"project.properties":"timing.csv"));}
      }else{
+      if(kind==ExportKind.GIF){
+        android.graphics.Movie movie=android.graphics.Movie.decodeFile(file.getAbsolutePath());
+        assertNotNull(movie);assertEquals(750,movie.duration());
+        Bitmap second=Bitmap.createBitmap(64,48,Bitmap.Config.ARGB_8888);
+        movie.setTime(600);movie.draw(new Canvas(second),0,0);
+        assertTrue(Color.blue(second.getPixel(32,24))>180);second.recycle();
+      }
+      if(kind==ExportKind.APNG)verifyApng(file);
       Bitmap image=BitmapFactory.decodeFile(file.getAbsolutePath());assertNotNull(kind.name(),image);assertEquals(64,image.getWidth());assertEquals(48,image.getHeight());image.recycle();
      }
      assertArrayEquals(kind.name(),original,DrawingView.nativePixels());assertEquals(availability,DrawingView.nativeHistoryAvailability());
@@ -75,5 +83,35 @@ public final class ExportFormatsTest {
    catch(java.util.concurrent.CancellationException expected){}
    assertArrayEquals(original,DrawingView.nativePixels());assertEquals(availability,DrawingView.nativeHistoryAvailability());
   }finally{if(!host.isDestroyed()){i.runOnMainSync(host::onBackPressed);await(host::isDestroyed);}}
+ }
+
+ private void verifyApng(File file)throws Exception{
+  try(DataInputStream in=new DataInputStream(new FileInputStream(file))){
+   byte[] signature=new byte[8];in.readFully(signature);
+   int controls=0;java.util.ArrayList<ByteArrayOutputStream> streams=new java.util.ArrayList<>();
+   while(true){
+    int length=in.readInt();assertTrue(length>=0&&length<1000000);
+    byte[] tag=new byte[4],data=new byte[length];in.readFully(tag);in.readFully(data);
+    CRC32 crc=new CRC32();crc.update(tag);crc.update(data);assertEquals((int)crc.getValue(),in.readInt());
+    String type=new String(tag,"US-ASCII");
+    if(type.equals("fcTL")){
+     java.nio.ByteBuffer control=java.nio.ByteBuffer.wrap(data);
+     assertEquals(controls==0?2:1,control.getShort(20));
+     assertEquals(4,control.getShort(22));controls++;streams.add(new ByteArrayOutputStream());
+    }
+    if(type.equals("IDAT"))streams.get(0).write(data);
+    if(type.equals("fdAT"))streams.get(streams.size()-1).write(data,4,data.length-4);
+    if(type.equals("IEND"))break;
+   }
+   assertEquals(2,controls);
+   for(int frame=0;frame<2;frame++){
+    try(java.util.zip.InflaterInputStream z=new java.util.zip.InflaterInputStream(new ByteArrayInputStream(streams.get(frame).toByteArray()))){
+     ByteArrayOutputStream raw=new ByteArrayOutputStream();byte[] bytes=new byte[1024];int n;while((n=z.read(bytes))!=-1)raw.write(bytes,0,n);
+     byte[] rgba=raw.toByteArray();assertEquals((64*4+1)*48,rgba.length);
+     int at=24*(64*4+1)+1+32*4;
+     assertEquals(frame==0?255:0,rgba[at]&255);assertEquals(frame==1?255:0,rgba[at+2]&255);assertEquals(255,rgba[at+3]&255);
+    }
+   }
+  }
  }
 }
