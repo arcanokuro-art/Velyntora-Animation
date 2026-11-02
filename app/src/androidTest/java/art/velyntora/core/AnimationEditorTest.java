@@ -150,8 +150,9 @@ public final class AnimationEditorTest {
       i.runOnMainSync(() -> host.move(1));
       idle(host, 3, 1);
       i.runOnMainSync(() -> assertEquals(2, canvas(host).layerCount()));
+      i.runOnMainSync(() -> assertFalse(button(host.getWindow().getDecorView(), "Cebolla: no").isSelected()));
       click(host, "Cebolla: no");
-      i.runOnMainSync(() -> assertNotNull(button(host.getWindow().getDecorView(), "Cebolla: sí")));
+      i.runOnMainSync(() -> assertTrue(button(host.getWindow().getDecorView(), "Cebolla: sí").isSelected()));
       click(host, "Reproducir");
       await(() -> button(host.getWindow().getDecorView(), "Pausar") != null);
       click(host, "Pausar");

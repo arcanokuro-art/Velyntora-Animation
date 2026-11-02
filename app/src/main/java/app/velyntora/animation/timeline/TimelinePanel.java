@@ -54,7 +54,16 @@ public final class TimelinePanel extends LinearLayout {
   private int dp(int n){return Math.round(n*getResources().getDisplayMetrics().density);}
   private GradientDrawable background(){GradientDrawable d=new GradientDrawable();d.setColor(0xff1a2025);d.setCornerRadius(dp(5));d.setStroke(dp(1),0xff364047);return d;}
   private Button control(String icon,String description,String text,Runnable action){
-    Button b=new Button(getContext());b.setAllCaps(false);b.setText(text);b.setTextColor(0xffe6e9eb);b.setTextSize(11);b.setMinWidth(0);b.setMinimumWidth(0);b.setMinHeight(0);b.setMinimumHeight(0);
+    Button b=new Button(getContext()){
+      protected void onDraw(Canvas canvas){
+        if(getText().length()!=0){super.onDraw(canvas);return;}
+        android.graphics.drawable.Drawable icon=getCompoundDrawables()[0];
+        if(icon==null){super.onDraw(canvas);return;}
+        int checkpoint=canvas.save();
+        canvas.translate((getWidth()-icon.getBounds().width())/2f,(getHeight()-icon.getBounds().height())/2f);
+        icon.draw(canvas);canvas.restoreToCount(checkpoint);
+      }
+    };b.setAllCaps(false);b.setText(text);b.setTextColor(0xffe6e9eb);b.setTextSize(11);b.setMinWidth(0);b.setMinimumWidth(0);b.setMinHeight(0);b.setMinimumHeight(0);
     b.setPadding(dp(text.isEmpty()?8:10),0,dp(text.isEmpty()?8:10),0);b.setGravity(Gravity.CENTER);b.setBackground(background());b.setContentDescription(description);
     TimelineIcon d=new TimelineIcon(icon);d.setBounds(0,0,dp(22),dp(22));b.setCompoundDrawables(d,null,null,null);b.setCompoundDrawablePadding(text.isEmpty()?0:dp(7));b.setOnClickListener(v->action.run());return b;
   }
@@ -79,7 +88,10 @@ public final class TimelinePanel extends LinearLayout {
     put(transport,control("previous","Fotograma anterior","",()->navigate(-1)),40);
     put(transport,control("next","Fotograma siguiente","",()->navigate(1)),40);
     Button fps=control("more","Velocidad de reproducción",project.sequence.fps()+" FPS",actions::fps);fps.setOnClickListener(v->{PopupMenu menu=new PopupMenu(getContext(),fps);for(int rate:new int[]{6,8,12,15,24,25,30,60})menu.getMenu().add(rate+" FPS").setOnMenuItemClickListener(item->{actions.setFps(rate);return true;});menu.getMenu().add("Personalizar…").setOnMenuItemClickListener(item->{actions.fps();return true;});menu.show();});put(transport,fps,96);
-    put(transport,control("link","Cebolla: "+(onion?"sí":"no"),"",actions::onion),42);
+    Button onionButton=control("link","Cebolla: "+(onion?"sí":"no"),"",actions::onion);
+    onionButton.setSelected(onion);
+    if(onion){GradientDrawable enabled=background();enabled.setStroke(dp(2),0xffff269d);onionButton.setBackground(enabled);}
+    put(transport,onionButton,42);
     if(counter.getParent()!=null)((android.view.ViewGroup)counter.getParent()).removeView(counter);
     counter.setText((selected+1)+" / "+count);transport.addView(counter,new LayoutParams(dp(82),dp(40)));
     put(editing,control("add","+ Fotograma","Añadir",()->actions.add(false)),-2);
