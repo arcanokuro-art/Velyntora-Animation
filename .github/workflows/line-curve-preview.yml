@@ -8,7 +8,7 @@ on:
       - '.github/workflows/line-curve-preview.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   preview:
     runs-on: ubuntu-latest
@@ -35,3 +35,15 @@ jobs:
           name: Linea-Curva-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Publicar APK de prueba en Releases
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'codex/line-curve-corners-smooth'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          APP_REPO_NAME: ${{ github.event.repository.name }}
+          SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          asset="${APP_REPO_NAME}-Linea-Curva.apk"
+          cp app/build/outputs/apk/debug/app-debug.apk "$asset"
+          gh release view line-curve-corners-preview >/dev/null 2>&1 || gh release create line-curve-corners-preview --target "$SOURCE_SHA" --title "Línea/Curva · Esquinas y curvas suaves" --notes "APK de prueba: puntos de esquina y curvas más redondeadas. Toca un punto interior para elegir Convertir en esquina o Convertir en curva. Incluye deshacer y rehacer. Pendiente de validación táctil antes de integrar en main." --prerelease
+          gh release upload line-curve-corners-preview "$asset" --clobber
