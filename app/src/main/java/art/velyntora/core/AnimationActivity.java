@@ -32,6 +32,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
   private boolean busy, ready, onionEnabled, closeAfterJob;
   private int onionGeneration;
   private Runnable pendingEntry;
+  private String stableSessionPath;
   private final Handler autosave = new Handler(Looper.getMainLooper());
   private final Runnable saveWhenIdle =
       new Runnable() {
@@ -128,7 +129,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     stopPlayback();
     super.onConfigurationChanged(config);
     attachPreview();
-    refreshAnimation();
+    if (!busy) refreshAnimation();
   }
 
   private void runIO(String label, Job task, Runnable success) {
@@ -169,6 +170,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
                 }
                 ready = session.project() != null;
                 if (ready) {
+                  stableSessionPath = session.project().directory.getAbsolutePath();
                   markDocumentClean(
                       session.project().title
                           + " · "
@@ -506,7 +508,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
 
   @Override
   protected void onSaveInstanceState(Bundle state) {
-    if (ready) state.putString("session", session.project().directory.getAbsolutePath());
+    if (stableSessionPath != null) state.putString("session", stableSessionPath);
     super.onSaveInstanceState(state);
   }
 

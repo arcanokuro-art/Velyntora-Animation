@@ -100,9 +100,10 @@ public final class TimelinePanel extends LinearLayout {
     button("Cebolla: " + (onion ? "sí" : "no"), actions::onion);
     button("Guardar animación", actions::save);
     button("Exportar PNG", actions::export);
+    final int selectedFrame = project.sequence.selected();
     scroll.post(
         () ->
             scroll.smoothScrollTo(
-                Math.max(0, project.sequence.selected() * strip.cell - scroll.getWidth() / 2), 0));
+                Math.max(0, selectedFrame * strip.cell - scroll.getWidth() / 2), 0));
   }
 }

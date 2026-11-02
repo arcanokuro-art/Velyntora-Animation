@@ -13,6 +13,7 @@ final class TimelineStrip extends View {
   private final IntConsumer select;
   private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
   private AnimationProject project;
+  private app.velyntora.animation.model.AnimationSequence sequence;
   private int generation;
   final int cell;
 
@@ -31,28 +32,29 @@ final class TimelineStrip extends View {
 
   void bind(AnimationProject project) {
     this.project = project;
+    this.sequence = project == null ? null : project.sequence.copy();
     generation++;
     requestLayout();
     invalidate();
   }
 
   protected void onMeasure(int width, int height) {
-    setMeasuredDimension(cell * (project == null ? 1 : project.sequence.size()), dp(70));
+    setMeasuredDimension(cell * (project == null ? 1 : sequence.size()), dp(70));
   }
 
   protected void onDraw(Canvas canvas) {
     if (project == null) return;
     Rect clip = canvas.getClipBounds();
     int first = Math.max(0, clip.left / cell),
-        last = Math.min(project.sequence.size(), clip.right / cell + 1);
+        last = Math.min(sequence.size(), clip.right / cell + 1);
     int token = generation;
     for (int i = first; i < last; i++) {
       float x = i * cell;
-      boolean active = i == project.sequence.selected();
+      boolean active = i == sequence.selected();
       paint.setColor(active ? 0xff237ef4 : 0xff4b4e55);
       canvas.drawRoundRect(
           x + dp(2), dp(2), x + cell - dp(2), getHeight() - dp(2), dp(4), dp(4), paint);
-      String asset = project.sequence.frame(i).asset;
+      String asset = sequence.frame(i).asset;
       if (asset != null) {
         Bitmap thumbnail = cache.get(asset, 128);
         if (thumbnail != null)
@@ -69,8 +71,7 @@ final class TimelineStrip extends View {
       }
       paint.setColor(Color.WHITE);
       paint.setTextSize(dp(12));
-      canvas.drawText(
-          (i + 1) + " · " + project.sequence.frame(i).exposure, x + dp(6), dp(63), paint);
+      canvas.drawText((i + 1) + " · " + sequence.frame(i).exposure, x + dp(6), dp(63), paint);
     }
   }
 
@@ -78,7 +79,7 @@ final class TimelineStrip extends View {
     if (project == null) return false;
     if (e.getActionMasked() == MotionEvent.ACTION_UP) {
       int index = (int) e.getX() / cell;
-      if (index >= 0 && index < project.sequence.size()) {
+      if (index >= 0 && index < sequence.size()) {
         performClick();
         select.accept(index);
       }
