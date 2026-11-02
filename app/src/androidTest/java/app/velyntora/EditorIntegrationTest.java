@@ -31,7 +31,7 @@ public final class EditorIntegrationTest {
         });
         // The new-canvas dialog is the only focusable window with dimension inputs.
         assertTrue("Dimension dialog must own window focus",editor.hasWindowFocus()==false);
-        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK);
+        // Cleanup stays on the app UI thread; no cross-window key injection is needed.
         instrumentation.runOnMainSync(()->{editor.finish();home.finish();});
         instrumentation.removeMonitor(monitor);
     }
