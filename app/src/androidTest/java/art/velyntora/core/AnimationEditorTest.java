@@ -34,7 +34,7 @@ public final class AnimationEditorTest {
   }
 
   private Button button(View root, String label) {
-    if (root instanceof Button && label.contentEquals(((Button) root).getText()))
+    if (root instanceof Button && (label.contentEquals(((Button) root).getText()) || (root.getContentDescription() != null && label.contentEquals(root.getContentDescription()))))
       return (Button) root;
     if (root instanceof ViewGroup) {
       ViewGroup group = (ViewGroup) root;
@@ -205,6 +205,8 @@ public final class AnimationEditorTest {
       }
       assertEquals(3, frames);
       i.runOnMainSync(() -> assertEquals(2, canvas(reopened).layerCount()));
+      i.runOnMainSync(() -> reopened.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+      await(() -> reopened.getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE);
       i.waitForIdleSync();
       try (ParcelFileDescriptor command =
               i.getUiAutomation()

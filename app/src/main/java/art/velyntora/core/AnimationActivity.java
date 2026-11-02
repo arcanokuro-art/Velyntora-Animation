@@ -330,7 +330,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
           playback.start(
               session.project(),
               (bitmap, index) -> {
-                if (!isDestroyed()) preview.setImageBitmap(bitmap);
+                if (!isDestroyed()) { preview.setImageBitmap(bitmap); timeline.setPlaybackFrame(index); }
               });
           timeline.bind(session.project(), true, onionEnabled);
         });
@@ -340,6 +340,11 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     stopPlayback();
     onionEnabled = !onionEnabled;
     refreshAnimation();
+  }
+
+  public void setFps(int value) {
+    stopPlayback();
+    runIO("Guardando velocidad…", () -> session.mutate(s -> s.fps(value), false, false), null);
   }
 
   public void fps() {

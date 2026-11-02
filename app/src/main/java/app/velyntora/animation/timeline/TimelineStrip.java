@@ -7,88 +7,46 @@ import app.velyntora.animation.preview.FramePreviewCache;
 import app.velyntora.animation.storage.AnimationProject;
 import java.util.function.IntConsumer;
 
-/** Draws only visible cells, so long sequences do not allocate a View per frame. */
+/** Virtualized filmstrip backed by an immutable sequence snapshot. */
 final class TimelineStrip extends View {
   private final FramePreviewCache cache;
   private final IntConsumer select;
-  private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
+  private final Runnable add;
+  private final Paint paint=new Paint(3);
   private AnimationProject project;
   private app.velyntora.animation.model.AnimationSequence sequence;
-  private int generation;
+  private int generation,active;
   final int cell;
-
-  TimelineStrip(Context context, FramePreviewCache cache, IntConsumer select) {
-    super(context);
-    this.cache = cache;
-    this.select = select;
-    cell = dp(76);
-    setContentDescription("Línea de tiempo de fotogramas");
-    setFocusable(true);
+  TimelineStrip(Context c,FramePreviewCache cache,IntConsumer select,Runnable add){
+    super(c);this.cache=cache;this.select=select;this.add=add;cell=dp(100);
+    setContentDescription("Línea de tiempo de fotogramas; toca una miniatura para seleccionar");setFocusable(true);
   }
-
-  private int dp(int n) {
-    return Math.round(n * getResources().getDisplayMetrics().density);
-  }
-
-  void bind(AnimationProject project) {
-    this.project = project;
-    this.sequence = project == null ? null : project.sequence.copy();
-    generation++;
-    requestLayout();
-    invalidate();
-  }
-
-  protected void onMeasure(int width, int height) {
-    setMeasuredDimension(cell * (project == null ? 1 : sequence.size()), dp(70));
-  }
-
-  protected void onDraw(Canvas canvas) {
-    if (project == null) return;
-    Rect clip = canvas.getClipBounds();
-    int first = Math.max(0, clip.left / cell),
-        last = Math.min(sequence.size(), clip.right / cell + 1);
-    int token = generation;
-    for (int i = first; i < last; i++) {
-      float x = i * cell;
-      boolean active = i == sequence.selected();
-      paint.setColor(active ? 0xff237ef4 : 0xff4b4e55);
-      canvas.drawRoundRect(
-          x + dp(2), dp(2), x + cell - dp(2), getHeight() - dp(2), dp(4), dp(4), paint);
-      String asset = sequence.frame(i).asset;
-      if (asset != null) {
-        Bitmap thumbnail = cache.get(asset, 128);
-        if (thumbnail != null)
-          canvas.drawBitmap(
-              thumbnail, null, new RectF(x + dp(6), dp(6), x + cell - dp(6), dp(48)), paint);
-        else
-          cache.load(
-              asset,
-              project.previewFile(asset),
-              128,
-              image -> {
-                if (token == generation && image != null) invalidate();
-              });
+  private int dp(int n){return Math.round(n*getResources().getDisplayMetrics().density);}
+  void bind(AnimationProject project){this.project=project;sequence=project==null?null:project.sequence.copy();active=sequence==null?0:sequence.selected();generation++;requestLayout();invalidate();}
+  void setPlaybackFrame(int frame){active=frame;invalidate();}
+  protected void onMeasure(int w,int h){setMeasuredDimension(cell*(sequence==null?1:sequence.size()+1),dp(94));}
+  protected void onDraw(Canvas c){
+    if(sequence==null)return;
+    Rect clip=c.getClipBounds();int first=Math.max(0,clip.left/cell),last=Math.min(sequence.size()+1,clip.right/cell+1),token=generation;
+    for(int i=first;i<last;i++){
+      float x=i*cell;RectF tile=new RectF(x+dp(4),dp(24),x+cell-dp(4),dp(91));
+      paint.setStyle(Paint.Style.FILL);paint.setTextAlign(Paint.Align.CENTER);paint.setTextSize(dp(11));paint.setColor(0xffd7dde2);
+      if(i==sequence.size()){
+        paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(1));paint.setPathEffect(new DashPathEffect(new float[]{dp(5),dp(4)},0));c.drawRoundRect(tile,dp(5),dp(5),paint);paint.setPathEffect(null);
+        paint.setStyle(Paint.Style.FILL);paint.setTextSize(dp(26));c.drawText("+",x+cell/2f,dp(52),paint);paint.setTextSize(dp(10));c.drawText("Añadir",x+cell/2f,dp(69),paint);c.drawText("fotograma",x+cell/2f,dp(82),paint);continue;
       }
-      paint.setColor(Color.WHITE);
-      paint.setTextSize(dp(12));
-      canvas.drawText((i + 1) + " · " + sequence.frame(i).exposure, x + dp(6), dp(63), paint);
-    }
-  }
-
-  public boolean onTouchEvent(MotionEvent e) {
-    if (project == null) return false;
-    if (e.getActionMasked() == MotionEvent.ACTION_UP) {
-      int index = (int) e.getX() / cell;
-      if (index >= 0 && index < sequence.size()) {
-        performClick();
-        select.accept(index);
+      c.drawText(String.valueOf(i+1),x+cell/2f,dp(16),paint);
+      paint.setColor(Color.WHITE);c.drawRoundRect(tile,dp(4),dp(4),paint);
+      String asset=sequence.frame(i).asset;
+      if(asset!=null){Bitmap image=cache.get(asset,128);
+        if(image!=null){float scale=Math.min((tile.width()-dp(4))/image.getWidth(),(tile.height()-dp(4))/image.getHeight());float w=image.getWidth()*scale,h=image.getHeight()*scale;
+          c.drawBitmap(image,null,new RectF(tile.centerX()-w/2,tile.centerY()-h/2,tile.centerX()+w/2,tile.centerY()+h/2),paint);
+        }else cache.load(asset,project.previewFile(asset),128,imageLoaded->{if(token==generation&&imageLoaded!=null)invalidate();});
       }
+      paint.setStyle(Paint.Style.STROKE);paint.setStrokeWidth(dp(i==active?3:1));paint.setColor(i==active?0xffff269d:0xff424b53);c.drawRoundRect(tile,dp(4),dp(4),paint);
     }
-    return true;
+    paint.setStyle(Paint.Style.FILL);
   }
-
-  public boolean performClick() {
-    super.performClick();
-    return true;
-  }
+  public boolean onTouchEvent(MotionEvent e){if(sequence==null)return false;if(e.getActionMasked()==MotionEvent.ACTION_UP){int index=(int)e.getX()/cell;performClick();if(index==sequence.size())add.run();else if(index>=0&&index<sequence.size())select.accept(index);}return true;}
+  public boolean performClick(){super.performClick();return true;}
 }
