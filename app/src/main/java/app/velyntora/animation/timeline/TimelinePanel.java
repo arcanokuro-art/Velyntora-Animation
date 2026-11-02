@@ -72,10 +72,17 @@ public final class TimelinePanel extends LinearLayout {
   private void arrange(){
     if(transport.getParent()!=null)((ViewGroup)transport.getParent()).removeView(transport);
     if(editing.getParent()!=null)((ViewGroup)editing.getParent()).removeView(editing);
-    toolbar.removeAllViews();toolbar.setOrientation(compact?VERTICAL:HORIZONTAL);
-    if(compact){HorizontalScrollView viewport=new HorizontalScrollView(getContext());viewport.setHorizontalScrollBarEnabled(false);viewport.addView(transport);toolbar.addView(viewport,new LayoutParams(-1,dp(48)));}else toolbar.addView(transport,new LayoutParams(-2,dp(48)));
-    if(!compact)toolbar.addView(new View(getContext()),new LayoutParams(0,1,1));
-    if(compact){HorizontalScrollView viewport=new HorizontalScrollView(getContext());viewport.setHorizontalScrollBarEnabled(false);viewport.addView(editing);toolbar.addView(viewport,new LayoutParams(-1,dp(48)));}else toolbar.addView(editing,new LayoutParams(-2,dp(48)));
+    toolbar.removeAllViews();toolbar.setOrientation(HORIZONTAL);
+    LinearLayout controls=toolbar;
+    if(compact){
+      HorizontalScrollView viewport=new HorizontalScrollView(getContext());
+      viewport.setHorizontalScrollBarEnabled(false);
+      controls=row();viewport.addView(controls);
+      toolbar.addView(viewport,new LayoutParams(-1,dp(48)));
+    }
+    controls.addView(transport,new LayoutParams(-2,dp(48)));
+    if(!compact)controls.addView(new View(getContext()),new LayoutParams(0,1,1));
+    controls.addView(editing,new LayoutParams(-2,dp(48)));
   }
   protected void onSizeChanged(int w,int h,int oldw,int oldh){super.onSizeChanged(w,h,oldw,oldh);boolean small=w<dp(850);if(small!=compact||toolbar.getChildCount()==0){compact=small;arrange();}}
   public void bind(AnimationProject project,boolean playing,boolean onion){
