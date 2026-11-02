@@ -29,9 +29,6 @@ public final class TimelinePanel extends LinearLayout {
 
     void onion();
 
-    void save();
-
-    void export();
   }
 
   private final Actions actions;
@@ -283,17 +280,13 @@ public final class TimelinePanel extends LinearLayout {
             "← Mover",
             "Mover →",
             "Duración: " + project.sequence.current().exposure,
-            "Último fotograma",
-            "Guardar animación",
-            "Exportar PNG"
+            "Último fotograma"
           };
           Runnable[] jobs = {
             () -> actions.move(-1),
             () -> actions.move(1),
             actions::exposure,
-            () -> actions.select(count - 1),
-            actions::save,
-            actions::export
+            () -> actions.select(count - 1)
           };
           for (int n = 0; n < labels.length; n++) {
             final int index = n;

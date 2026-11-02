@@ -89,6 +89,25 @@ final class FrameDocumentAdapter {
     drawing.projectOpened();
   }
 
+  Bitmap render(int width,int height,boolean opaque)throws IOException{
+    int sourceWidth=DrawingView.nativeWidth(),sourceHeight=DrawingView.nativeHeight(),sample=1;
+    while((sourceWidth+sample-1)/sample>width*2 || (sourceHeight+sample-1)/sample>height*2)sample*=2;
+    int w=(sourceWidth+sample-1)/sample,h=(sourceHeight+sample-1)/sample;
+    int[] pixels=DrawingView.nativeSampleRegion(0,0,sample,w,h);
+    if(pixels==null||pixels.length!=w*h)throw new IOException("Fotograma incompleto");
+    Bitmap source=Bitmap.createBitmap(pixels,w,h,Bitmap.Config.ARGB_8888);
+    Bitmap target=null;
+    try{
+      target=Bitmap.createBitmap(width,height,Bitmap.Config.ARGB_8888);
+      Canvas canvas=new Canvas(target);if(opaque)canvas.drawColor(Color.WHITE);
+      float scale=Math.min(width/(float)sourceWidth,height/(float)sourceHeight);
+      float dw=sourceWidth*scale,dh=sourceHeight*scale;
+      canvas.drawBitmap(source,null,new RectF((width-dw)/2,(height-dh)/2,(width+dw)/2,(height+dh)/2),new Paint(3));
+      return target;
+    }catch(RuntimeException error){if(target!=null)target.recycle();throw error;}
+    finally{source.recycle();}
+  }
+
   void writePng(OutputStream output) throws IOException {
     int width = DrawingView.nativeWidth(), height = DrawingView.nativeHeight();
     PngWriter.write(

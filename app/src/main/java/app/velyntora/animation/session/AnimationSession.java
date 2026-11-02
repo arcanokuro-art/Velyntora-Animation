@@ -202,34 +202,57 @@ final class AnimationSession {
 
   void exportArchive(OutputStream output) throws IOException {
     capture();
-    project.exportArchive(output);
+    app.velyntora.animation.export.project.EditableProjectExporter.write(project,output);
   }
 
-  void exportPng(OutputStream output) throws IOException {
-    capture();
-    AnimationSequence sequence = project.sequence;
-    adapter.rememberHistory(project);
-    try (ZipOutputStream zip = new ZipOutputStream(output)) {
-      zip.putNextEntry(new ZipEntry("timing.csv"));
-      StringBuilder timing = new StringBuilder("frame,exposure,fps\n");
-      for (int i = 0; i < sequence.size(); i++)
-        timing
-            .append(i + 1)
-            .append(',')
-            .append(sequence.frame(i).exposure)
-            .append(',')
-            .append(sequence.fps())
-            .append('\n');
-      zip.write(timing.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
-      zip.closeEntry();
-      for (int i = 0; i < sequence.size(); i++) {
-        adapter.load(project, sequence.frame(i).asset);
-        zip.putNextEntry(new ZipEntry(String.format(Locale.ROOT, "frame-%05d.png", i + 1)));
-        adapter.writePng(zip);
-        zip.closeEntry();
+
+  private app.velyntora.animation.export.AnimationFrames frames(
+      java.util.concurrent.atomic.AtomicBoolean canceled,java.util.function.IntConsumer progress){
+    final AnimationProject source=project;
+    return new app.velyntora.animation.export.AnimationFrames(){
+      public void check(){if(canceled.get())throw new java.util.concurrent.CancellationException();}
+      public int width(){return source.width;}public int height(){return source.height;}
+      public int fps(){return source.sequence.fps();}public int count(){return source.sequence.size();}
+      public int ticks(){return source.sequence.totalTicks();}public int exposure(int i){return source.sequence.frame(i).exposure;}
+      private void load(int index)throws IOException{check();adapter.load(source,source.sequence.frame(index).asset);}
+      public android.graphics.Bitmap render(int index,int width,int height,boolean opaque)throws IOException{
+        load(index);android.graphics.Bitmap image=adapter.render(width,height,opaque);progress.accept(index+1);return image;
       }
-    } finally {
-      loadCurrent();
-    }
+      public void png(int index,OutputStream out)throws IOException{load(index);adapter.writePng(out);progress.accept(index+1);}
+    };
+  }
+
+  void exportPng(OutputStream output)throws IOException{
+    capture();adapter.rememberHistory(project);
+    try{
+      app.velyntora.animation.export.png_sequence.PngSequenceExporter.write(
+          frames(new java.util.concurrent.atomic.AtomicBoolean(),n->{}),output);
+    }finally{loadCurrent();}
+  }
+
+  void exportFile(app.velyntora.animation.export.ExportRequest request,File file,
+      java.util.concurrent.atomic.AtomicBoolean canceled,java.util.function.IntConsumer progress)throws IOException{
+    capture();adapter.rememberHistory(project);
+    app.velyntora.animation.export.AnimationFrames frames=frames(canceled,progress);
+    try{
+      frames.check();
+      switch(request.kind){
+       case MP4:app.velyntora.animation.export.mp4.Mp4Exporter.write(frames,request,file);break;
+       case WEBM:app.velyntora.animation.export.webm.WebmExporter.write(frames,request,file);break;
+       case THREE_GP:app.velyntora.animation.export.three_gp.ThreeGpExporter.write(frames,request,file);break;
+       default:
+        try(OutputStream out=new java.io.BufferedOutputStream(new FileOutputStream(file))){
+         switch(request.kind){
+          case PROJECT:app.velyntora.animation.export.project.EditableProjectExporter.write(project,out);break;
+          case PNG_SEQUENCE:app.velyntora.animation.export.png_sequence.PngSequenceExporter.write(frames,out);break;
+          case PNG_FRAME:app.velyntora.animation.export.png.PngFrameExporter.write(frames,project.sequence.selected(),out);break;
+          case GIF:app.velyntora.animation.export.gif.GifExporter.write(frames,request,out);break;
+          case APNG:app.velyntora.animation.export.apng.ApngExporter.write(frames,request,out);break;
+          default:throw new IOException("Formato no disponible");
+         }
+        }
+      }
+      frames.check();
+    }finally{loadCurrent();}
   }
 }

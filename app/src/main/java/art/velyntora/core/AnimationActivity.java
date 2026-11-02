@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 /** Composition facade. Native tools stay in Core; animation state stays in its own modules. */
 public final class AnimationActivity extends MainActivity implements TimelinePanel.Actions {
   public static final String ACTION = "app.velyntora.animation.TIMELINE";
-  static final int OPEN = 8101, SAVE = 8102, EXPORT = 8103, VIDEO = 8104;
+  static final int OPEN = 8101, SAVE = 8102, EXPORT = 8103, VIDEO = 8104, OUTPUT = 8105;
   private static final ExecutorService IO = Executors.newSingleThreadExecutor();
   private final FramePreviewCache cache = new FramePreviewCache();
   private final PlaybackController playback = new PlaybackController(cache);
@@ -33,6 +33,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
   private ProgressDialog videoProgress;
   private java.util.concurrent.atomic.AtomicBoolean videoCancellation;
   private int onionGeneration;
+  private app.velyntora.animation.export.ExportRequest pendingExport;
   private Runnable pendingEntry;
   private String stableSessionPath;
   private final Handler autosave = new Handler(Looper.getMainLooper());
@@ -55,6 +56,12 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
   @Override
   public void onCreate(Bundle state) {
     super.onCreate(state);
+    if(state!=null&&state.containsKey("exportKind")){
+      try{pendingExport=new app.velyntora.animation.export.ExportRequest(
+        app.velyntora.animation.export.ExportKind.valueOf(state.getString("exportKind")),
+        state.getInt("exportWidth"),state.getInt("exportHeight"),state.getInt("exportBitrate"));
+      }catch(IllegalArgumentException ignored){}
+    }
     adapter = new FrameDocumentAdapter(readDrawing());
     session = new AnimationSession(adapter, new File(getFilesDir(), "animations"));
     LinearLayout root =
@@ -440,7 +447,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
 
   @Override
   void projectPicker(boolean save) {
-    if (save) save();
+    if (save) showSaveMenu();
     else openImage();
   }
 
@@ -480,22 +487,65 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
           "Nueva animación…",
           "Abrir animación…",
           "Importar video como animación…",
-          "Guardar animación…",
-          "Exportar secuencia PNG…",
-          "Insertar imagen como capa…",
-          "Exportar fotograma PNG…"
+          "Insertar imagen como capa…"
         },
         new Runnable[] {
           () -> configureDimensions(0),
           this::openImage,
           this::chooseVideo,
-          this::save,
-          this::export,
-          () -> readDrawing().placedImage().pick(),
-          super::savePng
+          () -> readDrawing().placedImage().pick()
         });
   }
 
+
+
+  void showSaveMenu(){
+    if(!ready||busy)return;
+    stopPlayback();
+    app.velyntora.animation.export.menu.AnimationSaveMenu.show(this,session.project().width,
+      session.project().height,request->{
+        pendingExport=request;
+        startActivityForResult(new Intent(Intent.ACTION_CREATE_DOCUMENT)
+          .addCategory(Intent.CATEGORY_OPENABLE).setType(request.kind.mime)
+          .putExtra(Intent.EXTRA_TITLE,"animacion."+request.kind.extension),OUTPUT);
+      });
+  }
+
+  private void writeExport(Uri uri,app.velyntora.animation.export.ExportRequest request){
+    if(busy){pendingEntry=()->writeExport(uri,request);return;}
+    if(readProjectProgress()!=null||!readDrawing().isEnabled()){
+      message("Espera a que termine la operación del editor");return;
+    }
+    if(readDrawing().placedImage().active()){
+      message("Confirma o cancela la imagen insertada antes de exportar");return;
+    }
+    videoCancellation=new java.util.concurrent.atomic.AtomicBoolean();
+    final java.util.concurrent.atomic.AtomicBoolean canceled=videoCancellation;
+    videoProgress=new ProgressDialog(this);videoProgress.setTitle("Exportando "+request.kind.extension.toUpperCase(java.util.Locale.ROOT));
+    videoProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    videoProgress.setMax(session.project().sequence.size());videoProgress.setCancelable(false);
+    videoProgress.setButton(AlertDialog.BUTTON_NEGATIVE,"Cancelar",(d,w)->{});
+    videoProgress.setOnShowListener(d->videoProgress.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v->{
+      canceled.set(true);videoProgress.setMessage("Cancelando…");videoProgress.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
+    }));videoProgress.show();
+    runIO(null,()->{
+      File temporary=File.createTempFile("animation-export-","."+request.kind.extension,getCacheDir());
+      try{
+        session.exportFile(request,temporary,canceled,done->runOnUiThread(()->{
+          if(videoProgress!=null&&!isDestroyed())videoProgress.setProgress(done);
+        }));
+        if(canceled.get())throw new java.util.concurrent.CancellationException();
+        try(InputStream in=new FileInputStream(temporary);OutputStream out=getContentResolver().openOutputStream(uri,"wt")){
+          if(out==null)throw new IOException("No se pudo escribir el archivo");
+          byte[] bytes=new byte[65536];int count;
+          while((count=in.read(bytes))!=-1){
+            if(canceled.get())throw new java.util.concurrent.CancellationException();
+            out.write(bytes,0,count);
+          }
+        }
+      }finally{temporary.delete();}
+    },()->{if(!canceled.get())message("Archivo guardado");});
+  }
 
   private void chooseVideo(){
     if(busy)return;
@@ -528,6 +578,11 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
 
   @Override
   protected void onActivityResult(int request, int result, Intent data) {
+    if(request==OUTPUT){
+      app.velyntora.animation.export.ExportRequest selected=pendingExport;pendingExport=null;
+      if(result==RESULT_OK&&data!=null&&data.getData()!=null&&selected!=null)writeExport(data.getData(),selected);
+      return;
+    }
     if(request==VIDEO){
       if(result==RESULT_OK&&data!=null&&data.getData()!=null)
         app.velyntora.animation.video.VideoImportDialog.show(this,data.getData(),IO,this::importVideo);
@@ -568,6 +623,10 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
 
   @Override
   protected void onSaveInstanceState(Bundle state) {
+    if(pendingExport!=null){
+      state.putString("exportKind",pendingExport.kind.name());state.putInt("exportWidth",pendingExport.width);
+      state.putInt("exportHeight",pendingExport.height);state.putInt("exportBitrate",pendingExport.bitrate);
+    }
     if (stableSessionPath != null) state.putString("session", stableSessionPath);
     super.onSaveInstanceState(state);
   }
