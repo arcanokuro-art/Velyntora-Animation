@@ -495,7 +495,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
           () -> configureDimensions(0),
           this::openImage,
           this::chooseVideo,
-          () -> app.velyntora.animation.video.background.VideoImportManager.restore(this),
+          () -> app.velyntora.animation.video.background.VideoImportManager.showCurrent(this),
           () -> readDrawing().placedImage().pick()
         });
   }

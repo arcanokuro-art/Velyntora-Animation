@@ -27,6 +27,11 @@ public final class VideoImportManager {
  public static void show(Context host,VideoImportJob job){
   host.startActivity(new Intent(host,art.velyntora.core.VideoImportStatusActivity.class).putExtra("job",job.id));
  }
+ public static void showCurrent(Activity host){
+  try{VideoImportJob job=VideoImportJob.current(host);
+   if(job==null)Toast.makeText(host,"No hay importaciones de video",Toast.LENGTH_SHORT).show();else show(host,job);
+  }catch(IOException error){Toast.makeText(host,"No se pudo leer la importación",Toast.LENGTH_LONG).show();}
+ }
  public static void restore(Activity host){
   try{
    VideoImportJob job=VideoImportJob.current(host);if(job==null||job.terminal())return;
