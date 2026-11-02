@@ -230,8 +230,7 @@ public final class AnimationEditorTest {
       SystemClock.sleep(2500); // Let the display rotation and saved-file toast finish.
       shell("screencap -p /sdcard/Download/animation-editor-phone.png");
       // Validate the wide tablet layout used by the design reference as well as the phone layout.
-      shell("wm size 1000x1600");
-      shell("wm density 160");
+      shell("wm size 1700x2600");
       await(
           () ->
               reopened.getWindow().getDecorView().getWidth() > 1200
@@ -252,7 +251,6 @@ public final class AnimationEditorTest {
       shell("screencap -p /sdcard/Download/animation-editor-preview.png");
     } finally {
       shell("wm size reset");
-      shell("wm density reset");
       if (restored != null) {
         final AnimationActivity a = restored;
         i.runOnMainSync(a::onBackPressed);
