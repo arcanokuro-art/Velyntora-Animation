@@ -242,9 +242,12 @@ public final class AnimationEditorTest {
                   android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
       await(
           () ->
-              tablet.getWindow().getDecorView().getWidth() > 1200
+              tablet.getWindow().getDecorView().getWidth()
+                      > tablet.getWindow().getDecorView().getHeight()
                   && tablet.getResources().getConfiguration().screenWidthDp > 900);
       i.waitForIdleSync();
+      SystemClock.sleep(1500); // Wait for the landscape layout and rotation animation.
+      shell("screencap -p /sdcard/Download/animation-editor-preview.png");
       i.runOnMainSync(
           () -> {
             for (String label : new String[] {"Duplicar", "Eliminar", "Más opciones"}) {
@@ -256,8 +259,6 @@ public final class AnimationEditorTest {
               assertEquals(label, control.getHeight(), visible.height());
             }
           });
-      SystemClock.sleep(1000); // Surface rotation can finish after the View hierarchy is idle.
-      shell("screencap -p /sdcard/Download/animation-editor-preview.png");
     } finally {
       if (restored != null) {
         final AnimationActivity a = restored;
