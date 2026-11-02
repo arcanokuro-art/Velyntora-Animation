@@ -7,7 +7,7 @@ import static app.velyntora.ui.common.Ui.*;
 public final class DrawingHero {
     public static View create(Context c,StartActions actions){
         FrameLayout hero=new FrameLayout(c);
-        ImageView image=new ImageView(c);image.setImageResource(app.velyntora.R.drawable.start_drawing);image.setScaleType(ImageView.ScaleType.CENTER_CROP);hero.addView(image,new FrameLayout.LayoutParams(-1,-1));
+        ImageView image=new ImageView(c);image.setImageResource(app.velyntora.R.drawable.start_animation);image.setScaleType(ImageView.ScaleType.CENTER_CROP);hero.addView(image,new FrameLayout.LayoutParams(-1,-1));
         View shade=new View(c);shade.setBackgroundColor(0x40000000);hero.addView(shade,new FrameLayout.LayoutParams(-1,-1));
         LinearLayout controls=column(c);controls.setGravity(Gravity.CENTER);controls.setPadding(dp(c,18),dp(c,20),dp(c,18),dp(c,20));
         TextView title=text(c,"DIBUJO",28,true);title.setGravity(Gravity.CENTER);controls.addView(title);
