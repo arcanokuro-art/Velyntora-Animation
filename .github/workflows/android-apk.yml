@@ -12,7 +12,7 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: drawing-pilot-build
+  group: animation-pilot-build
   cancel-in-progress: false
 jobs:
   apk:
@@ -51,19 +51,20 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: drawing-integration-test-results
+          name: animation-integration-test-results
           path: |
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
-      - run: cp app/build/outputs/apk/debug/app-debug.apk Velyntora-Drawing-pilot.apk
+      - run: cp app/build/outputs/apk/debug/app-debug.apk Velyntora-Animation-pilot.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: Velyntora-Drawing-pilot
-          path: Velyntora-Drawing-pilot.apk
+          name: Velyntora-Animation-pilot
+          path: Velyntora-Animation-pilot.apk
           if-no-files-found: error
       - name: Publicar APK piloto
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view pilot-latest >/dev/null 2>&1 || gh release create pilot-latest --title "Velyntora Drawing · Piloto" --notes "Versión piloto de Velyntora Drawing." --prerelease
-          gh release upload pilot-latest Velyntora-Drawing-pilot.apk --clobber
+          gh release view pilot-latest >/dev/null 2>&1 || gh release create pilot-latest --title "Velyntora Animation · Piloto" --notes "Versión piloto de Velyntora Animation." --prerelease
+          gh release edit pilot-latest --title "Velyntora Animation · Piloto" --notes "Versión piloto de Velyntora Animation." --prerelease
+          gh release upload pilot-latest Velyntora-Animation-pilot.apk --clobber

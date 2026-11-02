@@ -43,7 +43,7 @@ public final class EditorIntegrationTest {
         try{
             Bitmap image=Bitmap.createBitmap(79,53,Bitmap.Config.ARGB_8888);image.eraseColor(Color.MAGENTA);
             try(java.io.OutputStream out=context.getContentResolver().openOutputStream(uri)){assertTrue(image.compress(Bitmap.CompressFormat.PNG,100,out));}catch(java.io.IOException error){throw new AssertionError(error);}finally{image.recycle();}
-            Intent intent=new Intent(context,art.velyntora.core.MainActivity.class).setAction("app.velyntora.drawing.OPEN").setData(uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Intent intent=new Intent(context,art.velyntora.core.MainActivity.class).setAction("app.velyntora.animation.OPEN").setData(uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_GRANT_READ_URI_PERMISSION);
             editor=instrumentation.startActivitySync(intent);final Activity opened=editor;
             java.util.concurrent.atomic.AtomicBoolean imported=new java.util.concurrent.atomic.AtomicBoolean();
             long deadline=SystemClock.uptimeMillis()+15000;

@@ -3,14 +3,14 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.*;
-/** Drawing start-screen entry; preserves Core's document protection and import pipeline. */
+/** Animation start-screen entry; preserves Core's document protection and import pipeline. */
 final class EditorEntry {
     private EditorEntry(){}
-    static boolean hasRequest(Intent intent){return intent!=null && ("app.velyntora.drawing.CREATE".equals(intent.getAction()) || "app.velyntora.drawing.OPEN".equals(intent.getAction()));}
+    static boolean hasRequest(Intent intent){return intent!=null && ("app.velyntora.animation.CREATE".equals(intent.getAction()) || "app.velyntora.animation.OPEN".equals(intent.getAction()));}
     static void enter(MainActivity host,Bundle state){
         Intent intent=host.getIntent();
         if(state!=null || !hasRequest(intent))return;
-        if("app.velyntora.drawing.CREATE".equals(intent.getAction()))host.protectDocument(()->host.configureDimensions(0));
+        if("app.velyntora.animation.CREATE".equals(intent.getAction()))host.protectDocument(()->host.configureDimensions(0));
         else if(intent.getData()!=null)host.protectDocument(()->host.openDetected(intent.getData()));
     }
     static void immersive(Window window){

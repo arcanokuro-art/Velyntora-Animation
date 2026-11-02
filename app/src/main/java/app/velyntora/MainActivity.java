@@ -15,5 +15,5 @@ public final class MainActivity extends Activity implements StartActions {
     @Override protected void onActivityResult(int request,int result,Intent data){super.onActivityResult(request,result,data);if(request==2001&&result==RESULT_OK&&data!=null&&data.getData()!=null)app.velyntora.editor.EditorNavigator.open(this,data.getData());}
     public void showRecentProjects(){info("Proyectos recientes","Todavía no hay proyectos guardados en esta versión piloto.");}
     public void showPreferences(){info("Preferencias","Las preferencias estarán disponibles en una próxima etapa del prototipo.");}
-    public void showHelp(){info("Velyntora Drawing · Versión piloto","Versión piloto con el motor de Velyntora Core integrado. Crea ilustraciones y edita imágenes.\n\nPowered By Zaskar Startup");}
+    public void showHelp(){info("Velyntora Animation · Versión piloto","Base piloto de Velyntora Animation con el editor de Velyntora Core integrado. Las funciones de animación se añadirán en las siguientes etapas.\n\nPowered By Zaskar Startup");}
 }

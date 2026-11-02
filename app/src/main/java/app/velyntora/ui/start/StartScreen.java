@@ -15,7 +15,7 @@ public final class StartScreen {
         ScrollView scroll=new ScrollView(c);scroll.setFillViewport(true);
         LinearLayout right=column(c);right.setPadding(dp(c,24),dp(c,24),dp(c,24),dp(c,24));
         ImageView logo=new ImageView(c);logo.setImageBitmap(app.velyntora.ui.common.BrandLogo.load(c));logo.setScaleType(ImageView.ScaleType.FIT_CENTER);right.addView(logo,new LinearLayout.LayoutParams(-1,dp(c,64)));
-        TextView drawing=text(c,"Drawing",22,true);drawing.setGravity(Gravity.CENTER);right.addView(drawing);
+        TextView drawing=text(c,"Animation",22,true);drawing.setGravity(Gravity.CENTER);right.addView(drawing);
         TextView pilot=text(c,"VERSIÓN PILOTO · Prototipo en desarrollo",13,false);pilot.setTextColor(MUTED);pilot.setGravity(Gravity.CENTER);pilot.setPadding(0,dp(c,10),0,dp(c,24));right.addView(pilot);
         right.addView(RecentProjectsPanel.create(c,actions),new LinearLayout.LayoutParams(-1,-2));
         LinearLayout footer=new LinearLayout(c);footer.setGravity(Gravity.END);footer.setPadding(0,dp(c,12),0,0);

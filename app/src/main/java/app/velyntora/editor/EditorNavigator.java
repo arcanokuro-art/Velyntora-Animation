@@ -5,6 +5,6 @@ import android.net.Uri;
 /** Start screen -> editor contract. The Android library owns document operations. */
 public final class EditorNavigator {
     private EditorNavigator(){}
-    public static void create(Activity host){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.drawing.CREATE"));}
-    public static void open(Activity host,Uri image){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.drawing.OPEN").setData(image).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));}
+    public static void create(Activity host){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.animation.CREATE"));}
+    public static void open(Activity host,Uri image){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.animation.OPEN").setData(image).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));}
 }

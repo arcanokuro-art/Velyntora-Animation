@@ -21,7 +21,7 @@ edit('engine/app/build.gradle',"id 'com.android.application'","id 'com.android.l
 edit('engine/app/build.gradle',"  applicationId 'art.velyntora.core'\n",'')
 (root/'engine/app/src/main/AndroidManifest.xml').write_text('''<manifest xmlns:android="http://schemas.android.com/apk/res/android">
   <application>
-    <activity android:name="art.velyntora.core.MainActivity" android:label="Velyntora Drawing"
+    <activity android:name="art.velyntora.core.MainActivity" android:label="Velyntora Animation"
       android:theme="@android:style/Theme.Material.NoActionBar"
       android:configChanges="orientation|screenSize|smallestScreenSize|fontScale"
       android:exported="false" />
@@ -39,8 +39,8 @@ import android.net.Uri;
 /** Start screen -> editor contract. The Android library owns document operations. */
 public final class EditorNavigator {
     private EditorNavigator(){}
-    public static void create(Activity host){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.drawing.CREATE"));}
-    public static void open(Activity host,Uri image){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.drawing.OPEN").setData(image).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));}
+    public static void create(Activity host){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.animation.CREATE"));}
+    public static void open(Activity host,Uri image){host.startActivity(new Intent(host,art.velyntora.core.MainActivity.class).setAction("app.velyntora.animation.OPEN").setData(image).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));}
 }
 ''')
 main='app/src/main/java/app/velyntora/MainActivity.java'
@@ -60,11 +60,11 @@ import android.view.*;
 /** Drawing start-screen entry; preserves Core's document protection and import pipeline. */
 final class EditorEntry {
     private EditorEntry(){}
-    static boolean hasRequest(Intent intent){return intent!=null && ("app.velyntora.drawing.CREATE".equals(intent.getAction()) || "app.velyntora.drawing.OPEN".equals(intent.getAction()));}
+    static boolean hasRequest(Intent intent){return intent!=null && ("app.velyntora.animation.CREATE".equals(intent.getAction()) || "app.velyntora.animation.OPEN".equals(intent.getAction()));}
     static void enter(MainActivity host,Bundle state){
         Intent intent=host.getIntent();
         if(state!=null || !hasRequest(intent))return;
-        if("app.velyntora.drawing.CREATE".equals(intent.getAction()))host.protectDocument(()->host.configureDimensions(0));
+        if("app.velyntora.animation.CREATE".equals(intent.getAction()))host.protectDocument(()->host.configureDimensions(0));
         else if(intent.getData()!=null)host.protectDocument(()->host.openDetected(intent.getData()));
     }
     static void immersive(Window window){
@@ -77,9 +77,9 @@ final class EditorEntry {
 }
 ''')
 (bridge/'README.md').write_text('Entrada desde Drawing: nuevo lienzo y apertura pasan por protección de documento y las operaciones originales. Recuperación automática omitida únicamente al recibir una petición explícita. Pantalla completa se restaura al recuperar foco.\n')
-(root/'README.md').write_text('''# Velyntora Drawing — piloto integrado
+(root/'README.md').write_text('''# Velyntora Animation — piloto integrado
 
-Nombre completo: Velyntora Drawing. Nombre bajo el icono: V-Drawing.
+Nombre completo: Velyntora Animation. Nombre bajo el icono: V-Animation.
 
 - `app/`: inicio, imagen, logo transparente, aviso piloto, crédito Powered By Zaskar Startup y navegación al editor.
 - `engine/`: instantánea completa de Velyntora-Core; motor C++, herramientas, pinceles, formatos, persistencia, IA Remove, recursos y pruebas.
