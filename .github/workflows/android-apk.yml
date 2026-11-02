@@ -74,8 +74,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view animation-preview >/dev/null 2>&1 || gh release create animation-preview --title "Velyntora Animation 0.3.2 · Pruebas" --notes "Editor de animación en rama de pruebas: fotogramas, capas, línea de tiempo, reproducción y proyectos." --prerelease --target "${{ github.sha }}"
-          gh release edit animation-preview --title "Velyntora Animation 0.3.2 · Pruebas" --notes "Línea de tiempo rediseñada: controles superiores, selección rosa y cabezal de reproducción. Audio pendiente." --prerelease
+          gh release view animation-preview >/dev/null 2>&1 || gh release create animation-preview --title "Velyntora Animation 0.4.0 · Pruebas" --notes "Editor de animación en rama de pruebas: fotogramas, capas, línea de tiempo, reproducción y proyectos." --prerelease --target "${{ github.sha }}"
+          gh release edit animation-preview --title "Velyntora Animation 0.4.0 · Pruebas" --notes "Importación de video a fotogramas: previsualización, recorte, FPS, resolución, progreso y cancelación. Audio pendiente." --prerelease
           gh release upload animation-preview Velyntora-Animation-pilot.apk --clobber
       - name: Publicar APK piloto
         if: github.ref == 'refs/heads/main'

@@ -19,7 +19,7 @@ import java.util.concurrent.*;
 /** Composition facade. Native tools stay in Core; animation state stays in its own modules. */
 public final class AnimationActivity extends MainActivity implements TimelinePanel.Actions {
   public static final String ACTION = "app.velyntora.animation.TIMELINE";
-  static final int OPEN = 8101, SAVE = 8102, EXPORT = 8103;
+  static final int OPEN = 8101, SAVE = 8102, EXPORT = 8103, VIDEO = 8104;
   private static final ExecutorService IO = Executors.newSingleThreadExecutor();
   private final FramePreviewCache cache = new FramePreviewCache();
   private final PlaybackController playback = new PlaybackController(cache);
@@ -30,6 +30,8 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
   private ImageView preview;
   private TextView progress;
   private boolean busy, ready, onionEnabled, closeAfterJob;
+  private ProgressDialog videoProgress;
+  private java.util.concurrent.atomic.AtomicBoolean videoCancellation;
   private int onionGeneration;
   private Runnable pendingEntry;
   private String stableSessionPath;
@@ -174,6 +176,8 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
                 autosave.removeCallbacks(showProgress);
                 if (isDestroyed()) return;
                 busy = false;
+                if(videoProgress!=null){videoProgress.dismiss();videoProgress=null;}
+                videoCancellation=null;
                 progress.setVisibility(View.GONE);
                 if (session.changedDocument) {
                   adapter.present();
@@ -188,7 +192,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
                           + (session.project().sequence.selected() + 1));
                   refreshAnimation();
                 }
-                if (error != null) {
+                if (error != null && !(error instanceof java.util.concurrent.CancellationException)) {
                   closeAfterJob = false;
                   new AlertDialog.Builder(this)
                       .setTitle("No se pudo completar")
@@ -475,6 +479,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
         new String[] {
           "Nueva animación…",
           "Abrir animación…",
+          "Importar video como animación…",
           "Guardar animación…",
           "Exportar secuencia PNG…",
           "Insertar imagen como capa…",
@@ -483,6 +488,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
         new Runnable[] {
           () -> configureDimensions(0),
           this::openImage,
+          this::chooseVideo,
           this::save,
           this::export,
           () -> readDrawing().placedImage().pick(),
@@ -490,8 +496,43 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
         });
   }
 
+
+  private void chooseVideo(){
+    if(busy)return;
+    stopPlayback();
+    startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT)
+        .addCategory(Intent.CATEGORY_OPENABLE).setType("video/*"),VIDEO);
+  }
+
+  void importVideo(app.velyntora.animation.video.VideoImportRequest request){
+    if(busy||readProjectProgress()!=null||!readDrawing().isEnabled())return;
+    if(readDrawing().placedImage().active()){
+      message("Confirma o cancela la imagen insertada antes de importar un video");return;
+    }
+    videoCancellation=new java.util.concurrent.atomic.AtomicBoolean();
+    final java.util.concurrent.atomic.AtomicBoolean canceled=videoCancellation;
+    videoProgress=new ProgressDialog(this);
+    videoProgress.setTitle("Video a fotogramas");
+    videoProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    videoProgress.setMax(request.frameCount);videoProgress.setCancelable(false);
+    videoProgress.setButton(AlertDialog.BUTTON_NEGATIVE,"Cancelar",(d,w)->{});
+    videoProgress.setOnShowListener(d->videoProgress.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v->{
+      canceled.set(true);videoProgress.setMessage("Cancelando…");
+      videoProgress.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
+    }));
+    videoProgress.show();
+    runIO(null,()->session.importVideo(getApplicationContext(),request,canceled,done->runOnUiThread(()->{
+      if(videoProgress!=null&&!isDestroyed())videoProgress.setProgress(done);
+    })),null);
+  }
+
   @Override
   protected void onActivityResult(int request, int result, Intent data) {
+    if(request==VIDEO){
+      if(result==RESULT_OK&&data!=null&&data.getData()!=null)
+        app.velyntora.animation.video.VideoImportDialog.show(this,data.getData(),IO,this::importVideo);
+      return;
+    }
     if (request < OPEN || request > EXPORT) {
       super.onActivityResult(request, result, data);
       return;
@@ -547,6 +588,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
       readDrawing().placedImage().cancel();
       return;
     }
+    if (busy && videoCancellation!=null){videoCancellation.set(true);return;}
     if (busy) {
       closeAfterJob = true;
       return;
@@ -562,6 +604,8 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
   protected void onDestroy() {
     autosave.removeCallbacks(saveWhenIdle);
     stopPlayback();
+    if(videoCancellation!=null)videoCancellation.set(true);
+    if(videoProgress!=null){videoProgress.dismiss();videoProgress=null;}
     cache.close();
     IO.execute(FrameDocumentAdapter::clearHistories);
     super.onDestroy();

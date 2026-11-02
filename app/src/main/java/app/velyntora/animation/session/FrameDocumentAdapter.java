@@ -68,6 +68,14 @@ final class FrameDocumentAdapter {
     }
   }
 
+  void importBitmap(Bitmap bitmap) throws IOException {
+    int width=bitmap.getWidth(),height=bitmap.getHeight();
+    int[] pixels=new int[width*height];
+    bitmap.getPixels(pixels,0,width,0,0,width,height);
+    if(!DrawingView.nativeLoadBitmap(width,height,pixels))
+      throw new IOException("No se pudo crear el fotograma del video");
+  }
+
   void create(int width, int height) throws IOException {
     if (!DrawingView.nativeCreate(width, height))
       throw new IOException("No hay memoria suficiente para el lienzo");

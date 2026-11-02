@@ -153,6 +153,53 @@ final class AnimationSession {
     }
   }
 
+
+  /** Commit only a complete decoded sequence; cancel/error restores the previous editable document. */
+  void importVideo(android.content.Context context,
+      app.velyntora.animation.video.VideoImportRequest request,
+      java.util.concurrent.atomic.AtomicBoolean canceled,
+      java.util.function.IntConsumer progress) throws IOException {
+    if(project!=null){capture();adapter.rememberHistory(project);}
+    AnimationProject old=project;
+    AnimationProject next=fresh(new Settings(request.title,request.width,request.height,request.fps));
+    boolean committed=false;
+    try(app.velyntora.animation.video.VideoFrameDecoder decoder=
+        new app.velyntora.animation.video.VideoFrameDecoder(context,request)){
+      java.util.ArrayList<AnimationSequence.Frame> frames=new java.util.ArrayList<>();
+      for(int i=0;i<request.frameCount;i++){
+        if(canceled.get())throw new java.util.concurrent.CancellationException();
+        android.graphics.Bitmap bitmap=decoder.frame(i);
+        try {
+          if(canceled.get())throw new java.util.concurrent.CancellationException();
+          adapter.importBitmap(bitmap);
+        } finally {bitmap.recycle();}
+        String asset=adapter.capture(next);
+        frames.add(new AnimationSequence.Frame(AnimationSequence.uuid(),asset,1));
+        progress.accept(i+1);
+      }
+      if(canceled.get())throw new java.util.concurrent.CancellationException();
+      next.sequence.replace(frames,0,request.fps);
+      adapter.load(next,next.sequence.current().asset);
+      next.checkpoint();
+      project=next;savedAsset=next.sequence.current().asset;savedRevision=adapter.revision();
+      changedDocument=true;FrameDocumentAdapter.clearHistories();committed=true;
+    } finally {
+      if(!committed){
+        project=old;
+        try {if(old!=null)loadCurrent();}
+        finally {
+          // The directory is a newly generated private staging project.
+          File[] objects=new File(next.directory,"objects").listFiles();
+          if(objects!=null)for(File file:objects)file.delete();
+          new File(next.directory,"objects").delete();
+          new File(next.directory,"project.next").delete();
+          new File(next.directory,"project.properties").delete();
+          next.directory.delete();
+        }
+      }
+    }
+  }
+
   void exportArchive(OutputStream output) throws IOException {
     capture();
     project.exportArchive(output);
