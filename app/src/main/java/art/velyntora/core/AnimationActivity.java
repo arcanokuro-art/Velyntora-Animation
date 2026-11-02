@@ -108,7 +108,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
                   : intent.getStringExtra("title"),
               intent.getIntExtra("width", 1280),
               intent.getIntExtra("height", 720),
-              intent.getIntExtra("fps", 12));
+              app.velyntora.animation.model.AnimationLimits.clampFps(intent.getIntExtra("fps", 30)));
       runIO("Creando animación…", () -> session.create(settings), null);
     }
   }
@@ -376,7 +376,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     slider(
         "Fotogramas por segundo",
         session.project().sequence.fps(),
-        60,
+        app.velyntora.animation.model.AnimationLimits.MAX_FPS,
         value ->
             runIO(
                 "Guardando velocidad…",
@@ -470,7 +470,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     stopPlayback();
     AnimationSetupDialog.show(
         this,
-        ready ? session.project().sequence.fps() : 12,
+        ready ? session.project().sequence.fps() : 30,
         settings -> runIO("Creando animación…", () -> session.create(settings), null));
   }
 

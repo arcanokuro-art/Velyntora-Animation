@@ -20,6 +20,7 @@ public final class AnimationSetupDialog {
   }
 
   public static void show(Activity host, int defaultFps, Consumer<Settings> create) {
+    defaultFps=app.velyntora.animation.model.AnimationLimits.clampFps(defaultFps);
     LinearLayout form = new LinearLayout(host);
     form.setOrientation(LinearLayout.VERTICAL);
     form.setPadding(32, 16, 32, 16);
@@ -57,7 +58,7 @@ public final class AnimationSetupDialog {
     rate.setText(defaultFps + " FPS");
     form.addView(rate);
     SeekBar fps = new SeekBar(host);
-    fps.setMax(59);
+    fps.setMax(app.velyntora.animation.model.AnimationLimits.MAX_FPS-1);
     fps.setProgress(defaultFps - 1);
     form.addView(fps);
     fps.setOnSeekBarChangeListener(

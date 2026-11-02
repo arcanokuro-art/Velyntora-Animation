@@ -239,7 +239,7 @@ public final class TimelinePanel extends LinearLayout {
     fps.setOnClickListener(
         v -> {
           PopupMenu menu = new PopupMenu(getContext(), fps);
-          for (int rate : new int[] {6, 8, 12, 15, 24, 25, 30, 60})
+          for (int rate : new int[] {1, 6, 8, 12, 15, 24, 25, 30})
             menu.getMenu()
                 .add(rate + " FPS")
                 .setOnMenuItemClickListener(

@@ -14,7 +14,7 @@ public final class AnimationProject {
   public final AnimationSequence sequence;
   public String title;
   public int width, height;
-  private static final long MAX_BYTES = 2L * 1024 * 1024 * 1024;
+  private static final long MAX_MANIFEST_BYTES = 32L * 1024 * 1024;
 
   public AnimationProject(File directory, String title, int width, int height, int fps)
       throws IOException {
@@ -74,7 +74,7 @@ public final class AnimationProject {
   public void read() throws IOException {
     try {
       File manifest = new File(directory, "project.properties");
-      if (manifest.length() > 1048576) throw new IOException("Metadatos demasiado grandes");
+      if (manifest.length() > MAX_MANIFEST_BYTES) throw new IOException("Metadatos demasiado grandes");
       Properties p = new Properties();
       try (Reader reader =
           new InputStreamReader(new FileInputStream(manifest), StandardCharsets.UTF_8)) {
@@ -146,6 +146,7 @@ public final class AnimationProject {
 
   public void importArchive(InputStream input) throws IOException {
     long total = 0;
+    final long availableBytes = Math.max(0, directory.getUsableSpace() - 16L*1024*1024);
     int entries = 0;
     try (ZipInputStream zip = new ZipInputStream(input)) {
       ZipEntry entry;
@@ -169,9 +170,9 @@ public final class AnimationProject {
             size += n;
             total += n;
             if (size > 536870912L
-                || total > MAX_BYTES
-                || (name.equals("project.properties") && size > 1048576))
+                || (name.equals("project.properties") && size > MAX_MANIFEST_BYTES))
               throw new IOException("Proyecto demasiado grande");
+            if(total>availableBytes)throw new IOException("Espacio insuficiente para importar el proyecto");
             out.write(buffer, 0, n);
           }
         }

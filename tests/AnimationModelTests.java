@@ -35,7 +35,8 @@ public final class AnimationModelTests {
     AnimationSequence s = new AnimationSequence(12);
     rejects(() -> s.delete());
     rejects(() -> s.fps(0));
-    rejects(() -> s.fps(61));
+    rejects(() -> s.fps(31));
+    rejects(() -> s.fps(60));
     rejects(() -> s.select(1));
     String asset = AnimationSequence.uuid();
     s.asset(asset);
@@ -66,7 +67,7 @@ public final class AnimationModelTests {
     check(clock.frame(1000) == 0);
     check(clock.frame(1167) == 1);
     check(clock.frame(1417) == 0);
-    s.fps(60);
+    s.fps(30);
     check(clock.frame(1167) == 1);
     AnimationProject p =
         new AnimationProject(
@@ -120,6 +121,36 @@ public final class AnimationModelTests {
       assertions++;
     }
     check(Files.readString(new File(p.directory, "project.properties").toPath()).equals(old));
+
+    // 40 minutes at 30 FPS: verify real large metadata, archive round trip and indexed timing.
+    AnimationProject large=new AnimationProject(Files.createTempDirectory("animation-72000").toFile(),"40 minutos",64,48,30);
+    seed(large);
+    String shared=large.sequence.current().asset;
+    ArrayList<AnimationSequence.Frame> many=new ArrayList<>();
+    for(int n=0;n<72000;n++)many.add(new AnimationSequence.Frame(AnimationSequence.uuid(),shared,1));
+    large.sequence.replace(many,71999,30);
+    check(large.sequence.totalTicks()==72000);
+    check(large.sequence.frameAtTick(71999)==71999);
+    check(large.sequence.frameAtTick(72000)==0);
+    check(large.sequence.frameAtTick(-1)==71999);
+    check(large.sequence.firstTick(72000)==72000);
+    rejects(()->large.sequence.insert(true));
+    large.checkpoint();
+    check(new File(large.directory,"project.properties").length()>1048576);
+    large.read();
+    check(large.sequence.size()==72000 && large.sequence.selected()==71999 && large.sequence.fps()==30);
+    ByteArrayOutputStream packed=new ByteArrayOutputStream();large.exportArchive(packed);
+    AnimationProject unpacked=new AnimationProject(Files.createTempDirectory("animation-72000-import").toFile(),"x",1,1,1);
+    unpacked.importArchive(new ByteArrayInputStream(packed.toByteArray()));
+    check(unpacked.sequence.size()==72000 && unpacked.sequence.totalTicks()==72000);
+    unpacked.sequence.exposure(2);
+    check(unpacked.sequence.totalTicks()==72001 && unpacked.sequence.frameAtTick(72000)==71999);
+    unpacked.sequence.move(-1);
+    check(unpacked.sequence.firstTick(71999)==72000);
+    unpacked.sequence.delete();
+    check(unpacked.sequence.totalTicks()==71999);
+    rejects(()->unpacked.sequence.replace(many,0,31));
+
     System.out.println("Animation model/storage/clock: " + assertions + " assertions passed");
   }
 }

@@ -16,7 +16,8 @@ final class TimelineStrip extends View {
   private AnimationProject project;
   private app.velyntora.animation.model.AnimationSequence sequence;
   private int generation, active;
-  final int cell;
+  int cell;
+  private static final int MAX_STRIP_WIDTH = 16000000;
 
   TimelineStrip(Context c, FramePreviewCache cache, IntConsumer select, Runnable add) {
     super(c);
@@ -36,6 +37,8 @@ final class TimelineStrip extends View {
     this.project = project;
     sequence = project == null ? null : project.sequence.copy();
     active = sequence == null ? 0 : sequence.selected();
+    // View measurement encodes its size in 24 bits. Keep every frame reachable at high density.
+    cell = sequence == null ? dp(100) : Math.max(1,Math.min(dp(100),MAX_STRIP_WIDTH/(sequence.size()+1)));
     generation++;
     requestLayout();
     invalidate();

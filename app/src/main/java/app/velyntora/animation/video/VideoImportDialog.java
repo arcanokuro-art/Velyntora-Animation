@@ -22,7 +22,7 @@ public final class VideoImportDialog {
     loading.setOnCancelListener(d->canceled.set(true));loading.show();
     executor.execute(()->{
       MediaMetadataRetriever reader=new MediaMetadataRetriever();
-      long duration=0;int width=0,height=0,fps=12;String failure=null;
+      long duration=0;int width=0,height=0,fps=30;String failure=null;
       try {
         reader.setDataSource(host,uri);
         duration=Long.parseLong(reader.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION))*1000L;
@@ -31,7 +31,7 @@ public final class VideoImportDialog {
         String rotation=reader.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION);
         if("90".equals(rotation)||"270".equals(rotation)){int swap=width;width=height;height=swap;}
         String rate=reader.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
-        if(rate!=null)fps=Math.max(1,Math.min(60,Math.round(Float.parseFloat(rate))));
+        if(rate!=null)fps=app.velyntora.animation.model.AnimationLimits.clampFps(Math.round(Float.parseFloat(rate)));
         if(duration<=0||width<=0||height<=0)throw new IllegalArgumentException();
       } catch(Exception e){failure="No se pudo leer el video. Revisa que el formato sea compatible con tu dispositivo.";}
       finally {try{reader.release();}catch(Exception ignored){}}
@@ -64,8 +64,8 @@ public final class VideoImportDialog {
     source.setText(width+" × "+height+" px · "+String.format(Locale.getDefault(),"%.3f s",duration/1000000d));
     form.addView(source);
     EditText start=number(host,form,"Inicio (segundos)","0",true);
-    EditText end=number(host,form,"Final (segundos)",String.format(Locale.US,"%.3f",duration/1000000d),true);
-    EditText fps=number(host,form,"FPS de extracción (1–60)",""+sourceFps,false);
+    EditText end=number(host,form,"Final (segundos)",String.format(Locale.US,"%.3f",Math.min(duration,app.velyntora.animation.model.AnimationLimits.MAX_VIDEO_DURATION_US)/1000000d),true);
+    EditText fps=number(host,form,"FPS de extracción (1–30)",""+sourceFps,false);
     TextView resolution=new TextView(host);resolution.setText("Resolución de salida");form.addView(resolution);
     Spinner size=new Spinner(host);
     String[] sizes={"Máximo 480 px","Máximo 720 px","Máximo 1080 px","Máximo 1920 px","Original (máximo 6000 px)"};
@@ -73,7 +73,7 @@ public final class VideoImportDialog {
     size.setSelection(3);form.addView(size);
     TextView estimate=new TextView(host);form.addView(estimate);
     TextView note=new TextView(host);
-    note.setText("Se creará una animación nueva. Tu proyecto actual se conservará. El audio no se importa.");
+    note.setText("Se creará una animación nueva. Tu proyecto actual se conservará. Máximo 40 minutos (72 000 fotogramas a 30 FPS). El audio no se importa.");
     form.addView(note);
     Button play=new Button(host);play.setText("Previsualizar fragmento");form.addView(play);
     ScrollView scroll=new ScrollView(host);scroll.addView(form);

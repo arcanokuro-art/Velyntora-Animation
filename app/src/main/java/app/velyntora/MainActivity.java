@@ -37,7 +37,7 @@ public final class MainActivity extends Activity implements StartActions {
   public void createAnimation() {
     AnimationSetupDialog.show(
         this,
-        getSharedPreferences("animation", 0).getInt("fps", 12),
+        app.velyntora.animation.model.AnimationLimits.clampFps(getSharedPreferences("animation", 0).getInt("fps", 30)),
         settings -> EditorNavigator.create(this, settings));
   }
 
@@ -82,8 +82,8 @@ public final class MainActivity extends Activity implements StartActions {
 
   public void showPreferences() {
     SeekBar slider = new SeekBar(this);
-    slider.setMax(59);
-    slider.setProgress(getSharedPreferences("animation", 0).getInt("fps", 12) - 1);
+    slider.setMax(app.velyntora.animation.model.AnimationLimits.MAX_FPS-1);
+    slider.setProgress(app.velyntora.animation.model.AnimationLimits.clampFps(getSharedPreferences("animation", 0).getInt("fps", 30)) - 1);
     TextView value = new TextView(this);
     value.setText((slider.getProgress() + 1) + " FPS");
     LinearLayout box = new LinearLayout(this);

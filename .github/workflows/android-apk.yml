@@ -32,7 +32,7 @@ jobs:
       - name: Verificar Animation y motor nativo
         run: |
           mkdir -p build/animation-tests
-          javac -d build/animation-tests app/src/main/java/app/velyntora/animation/{model/AnimationSequence.java,storage/AnimationProject.java,playback/PlaybackClock.java} tests/AnimationModelTests.java
+          javac -d build/animation-tests app/src/main/java/app/velyntora/animation/{model/AnimationLimits.java,model/AnimationSequence.java,storage/AnimationProject.java,playback/PlaybackClock.java} tests/AnimationModelTests.java
           java -cp build/animation-tests AnimationModelTests
           python engine/scripts/check_modular_boundaries.py
           cmake -S engine/tests -B build/core-tests -DCMAKE_BUILD_TYPE=Debug
@@ -74,8 +74,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view animation-preview >/dev/null 2>&1 || gh release create animation-preview --title "Velyntora Animation 0.5.0 · Pruebas" --notes "Editor de animación en rama de pruebas: fotogramas, capas, línea de tiempo, reproducción y proyectos." --prerelease --target "${{ github.sha }}"
-          gh release edit animation-preview --title "Velyntora Animation 0.5.0 · Pruebas" --notes "Menú modular de guardado y exportación: VLYANIM, MP4, WebM, 3GP, GIF, APNG y PNG. Videos sin audio." --prerelease
+          gh release view animation-preview >/dev/null 2>&1 || gh release create animation-preview --title "Velyntora Animation 0.5.1 · Pruebas" --notes "Editor de animación en rama de pruebas: fotogramas, capas, línea de tiempo, reproducción y proyectos." --prerelease --target "${{ github.sha }}"
+          gh release edit animation-preview --title "Velyntora Animation 0.5.1 · Pruebas" --notes "Menú modular de guardado y exportación: VLYANIM, MP4, WebM, 3GP, GIF, APNG y PNG. FPS de 1 a 30 e importación de hasta 40 minutos (72000 fotogramas). Videos sin audio." --prerelease
           gh release upload animation-preview Velyntora-Animation-pilot.apk --clobber
       - name: Publicar APK piloto
         if: github.ref == 'refs/heads/main'

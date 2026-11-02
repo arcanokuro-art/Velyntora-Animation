@@ -4,7 +4,7 @@ import java.util.*;
 
 /** Pixel-independent animation state. Assets are immutable native documents. */
 public final class AnimationSequence {
-  public static final int MAX_FRAMES = 2000;
+  public static final int MAX_FRAMES = AnimationLimits.MAX_FRAMES;
 
   public static final class Frame {
     public final String id, asset;
@@ -21,6 +21,7 @@ public final class AnimationSequence {
 
   private final ArrayList<Frame> frames = new ArrayList<>();
   private int selected, fps;
+  private int[] tickEnds;
 
   public AnimationSequence(int fps) {
     fps(fps);
@@ -31,8 +32,10 @@ public final class AnimationSequence {
     return UUID.randomUUID().toString();
   }
 
+  private static final java.util.regex.Pattern ID_PATTERN = java.util.regex.Pattern.compile("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}");
+
   public static boolean validId(String id) {
-    return id != null && id.matches("[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}");
+    return id != null && ID_PATTERN.matcher(id).matches();
   }
 
   public int size() {
@@ -56,8 +59,8 @@ public final class AnimationSequence {
   }
 
   public void fps(int value) {
-    if (value < 1 || value > 60)
-      throw new IllegalArgumentException("Los FPS deben estar entre 1 y 60");
+    if (value < 1 || value > AnimationLimits.MAX_FPS)
+      throw new IllegalArgumentException("Los FPS deben estar entre 1 y 30");
     fps = value;
   }
 
@@ -67,7 +70,8 @@ public final class AnimationSequence {
   }
 
   public void insert(boolean duplicate) {
-    if (size() >= MAX_FRAMES) throw new IllegalStateException("Límite de 2000 fotogramas");
+    if (size() >= MAX_FRAMES) throw new IllegalStateException("Límite de " + MAX_FRAMES + " fotogramas");
+    tickEnds=null;
     Frame old = current();
     frames.add(
         ++selected, new Frame(uuid(), duplicate ? old.asset : null, duplicate ? old.exposure : 1));
@@ -75,6 +79,7 @@ public final class AnimationSequence {
 
   public void delete() {
     if (size() == 1) throw new IllegalStateException("Debe quedar al menos un fotograma");
+    tickEnds=null;
     frames.remove(selected);
     selected = Math.min(selected, size() - 1);
   }
@@ -82,6 +87,7 @@ public final class AnimationSequence {
   public void move(int delta) {
     int to = selected + delta;
     if (to < 0 || to >= size()) return;
+    tickEnds=null;
     Collections.swap(frames, selected, to);
     selected = to;
   }
@@ -94,27 +100,26 @@ public final class AnimationSequence {
   public void exposure(int ticks) {
     Frame f = current();
     frames.set(selected, new Frame(f.id, f.asset, ticks));
+    tickEnds=null;
   }
 
-  public int totalTicks() {
-    int n = 0;
-    for (Frame f : frames) n += f.exposure;
-    return n;
+  private int[] timeline(){
+    if(tickEnds==null){
+      int[] ends=new int[frames.size()];int total=0;
+      for(int i=0;i<ends.length;i++){total+=frames.get(i).exposure;ends[i]=total;}
+      tickEnds=ends;
+    }return tickEnds;
   }
-
-  public int firstTick(int index) {
-    int n = 0;
-    for (int i = 0; i < index; i++) n += frame(i).exposure;
-    return n;
+  public int totalTicks(){int[] ends=timeline();return ends[ends.length-1];}
+  public int firstTick(int index){
+    if(index<0||index>frames.size())throw new IndexOutOfBoundsException();
+    return index==0?0:timeline()[index-1];
   }
-
-  public int frameAtTick(long tick) {
-    long at = Math.floorMod(tick, totalTicks());
-    for (int i = 0; i < size(); i++) {
-      at -= frame(i).exposure;
-      if (at < 0) return i;
-    }
-    return size() - 1;
+  public int frameAtTick(long tick){
+    int[] ends=timeline();int at=(int)Math.floorMod(tick,(long)ends[ends.length-1]);
+    int low=0,high=ends.length-1;
+    while(low<high){int mid=(low+high)>>>1;if(at<ends[mid])high=mid;else low=mid+1;}
+    return low;
   }
 
   public AnimationSequence copy() {
@@ -133,13 +138,14 @@ public final class AnimationSequence {
         || selection < 0
         || selection >= source.size()
         || rate < 1
-        || rate > 60) throw new IllegalArgumentException("Secuencia inválida");
+        || rate > AnimationLimits.MAX_FPS) throw new IllegalArgumentException("Secuencia inválida");
     HashSet<String> ids = new HashSet<>();
     for (Frame f : source)
       if (f == null || !ids.add(f.id)) throw new IllegalArgumentException("Fotograma repetido");
     ArrayList<Frame> copy = new ArrayList<>(source);
     frames.clear();
     frames.addAll(copy);
+    tickEnds=null;
     selected = selection;
     fps = rate;
   }
