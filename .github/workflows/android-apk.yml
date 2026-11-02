@@ -52,7 +52,11 @@ jobs:
           disable-animations: true
           script: |
             adb shell settings put secure immersive_mode_confirmations confirmed
-            gradle :app:connectedDebugAndroidTest --stacktrace; result=$?; adb pull /sdcard/Download/animation-editor-preview.png build/animation-editor.png; adb pull /sdcard/Download/animation-editor-phone.png build/animation-editor-phone.png; exit "$result"
+            if gradle :app:connectedDebugAndroidTest --stacktrace; then result=0; else result=$?; fi
+            adb logcat -d -s VIDEO_IMPORT_BENCHMARK:I '*:S' | tee build/video-import-benchmark.txt
+            adb pull /sdcard/Download/animation-editor-preview.png build/animation-editor.png
+            adb pull /sdcard/Download/animation-editor-phone.png build/animation-editor-phone.png
+            exit "$result"
             test -f build/animation-editor.png && test -s build/animation-editor.png
       - name: Informes y captura Android
         if: always()
@@ -63,6 +67,7 @@ jobs:
             app/build/reports/
             app/build/outputs/androidTest-results/
             build/animation-editor*.png
+            build/video-import-benchmark.txt
       - run: cp app/build/outputs/apk/debug/app-debug.apk Velyntora-Animation-pilot.apk
       - uses: actions/upload-artifact@v4
         with:
