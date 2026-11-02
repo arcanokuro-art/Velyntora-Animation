@@ -230,16 +230,25 @@ public final class AnimationEditorTest {
       SystemClock.sleep(2500); // Let the display rotation and saved-file toast finish.
       shell("screencap -p /sdcard/Download/animation-editor-phone.png");
       // Validate the wide tablet layout used by the design reference as well as the phone layout.
+      i.runOnMainSync(reopened::onBackPressed);
+      await(reopened::isDestroyed);
       shell("wm size 1700x2600");
+      restored = launch(archive);
+      final AnimationActivity tablet = restored;
+      idle(tablet, 3, 1);
+      i.runOnMainSync(
+          () ->
+              tablet.setRequestedOrientation(
+                  android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
       await(
           () ->
-              reopened.getWindow().getDecorView().getWidth() > 1200
-                  && reopened.getResources().getConfiguration().screenWidthDp > 900);
+              tablet.getWindow().getDecorView().getWidth() > 1200
+                  && tablet.getResources().getConfiguration().screenWidthDp > 900);
       i.waitForIdleSync();
       i.runOnMainSync(
           () -> {
             for (String label : new String[] {"Duplicar", "Eliminar", "Más opciones"}) {
-              Button control = button(reopened.getWindow().getDecorView(), label);
+              Button control = button(tablet.getWindow().getDecorView(), label);
               android.graphics.Rect visible = new android.graphics.Rect();
               assertNotNull(label, control);
               assertTrue(label, control.getGlobalVisibleRect(visible));
@@ -250,11 +259,14 @@ public final class AnimationEditorTest {
       SystemClock.sleep(1000); // Surface rotation can finish after the View hierarchy is idle.
       shell("screencap -p /sdcard/Download/animation-editor-preview.png");
     } finally {
-      shell("wm size reset");
       if (restored != null) {
         final AnimationActivity a = restored;
-        i.runOnMainSync(a::onBackPressed);
+        if (!a.isDestroyed()) {
+          i.runOnMainSync(a::onBackPressed);
+          await(a::isDestroyed);
+        }
       } else if (!host.isDestroyed()) i.runOnMainSync(host::onBackPressed);
+      shell("wm size reset");
       if (archive != null) i.getTargetContext().getContentResolver().delete(archive, null, null);
       if (png != null) i.getTargetContext().getContentResolver().delete(png, null, null);
     }
