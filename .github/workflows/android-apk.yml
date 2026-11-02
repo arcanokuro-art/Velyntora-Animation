@@ -53,6 +53,7 @@ jobs:
           script: |
             gradle :app:connectedDebugAndroidTest --stacktrace
             adb pull /sdcard/Download/animation-editor-preview.png build/animation-editor.png
+            adb pull /sdcard/Download/animation-editor-phone.png build/animation-editor-phone.png
             test -f build/animation-editor.png && test -s build/animation-editor.png
       - name: Informes y captura Android
         if: always()
@@ -62,7 +63,7 @@ jobs:
           path: |
             app/build/reports/
             app/build/outputs/androidTest-results/
-            build/animation-editor.png
+            build/animation-editor*.png
       - run: cp app/build/outputs/apk/debug/app-debug.apk Velyntora-Animation-pilot.apk
       - uses: actions/upload-artifact@v4
         with:

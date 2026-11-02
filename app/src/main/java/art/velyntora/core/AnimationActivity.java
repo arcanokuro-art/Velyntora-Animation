@@ -330,7 +330,10 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
           playback.start(
               session.project(),
               (bitmap, index) -> {
-                if (!isDestroyed()) { preview.setImageBitmap(bitmap); timeline.setPlaybackFrame(index); }
+                if (!isDestroyed()) {
+                  preview.setImageBitmap(bitmap);
+                  timeline.setPlaybackFrame(index);
+                }
               });
           timeline.bind(session.project(), true, onionEnabled);
         });

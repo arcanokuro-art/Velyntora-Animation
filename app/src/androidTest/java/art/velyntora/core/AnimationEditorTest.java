@@ -34,8 +34,10 @@ public final class AnimationEditorTest {
   }
 
   private Button button(View root, String label) {
-    if (root instanceof Button && (label.contentEquals(((Button) root).getText()) || (root.getContentDescription() != null && label.contentEquals(root.getContentDescription()))))
-      return (Button) root;
+    if (root instanceof Button
+        && (label.contentEquals(((Button) root).getText())
+            || (root.getContentDescription() != null
+                && label.contentEquals(root.getContentDescription())))) return (Button) root;
     if (root instanceof ViewGroup) {
       ViewGroup group = (ViewGroup) root;
       for (int n = 0; n < group.getChildCount(); n++) {
@@ -99,6 +101,14 @@ public final class AnimationEditorTest {
         });
   }
 
+  private void shell(String command) throws IOException {
+    try (ParcelFileDescriptor fd = i.getUiAutomation().executeShellCommand(command);
+        InputStream out = new ParcelFileDescriptor.AutoCloseInputStream(fd)) {
+      byte[] buffer = new byte[1024];
+      while (out.read(buffer) != -1) {}
+    }
+  }
+
   private Uri output(String name) throws IOException {
     ContentValues values = new ContentValues();
     values.put(MediaStore.Downloads.DISPLAY_NAME, name);
@@ -150,9 +160,11 @@ public final class AnimationEditorTest {
       i.runOnMainSync(() -> host.move(1));
       idle(host, 3, 1);
       i.runOnMainSync(() -> assertEquals(2, canvas(host).layerCount()));
-      i.runOnMainSync(() -> assertFalse(button(host.getWindow().getDecorView(), "Cebolla: no").isSelected()));
+      i.runOnMainSync(
+          () -> assertFalse(button(host.getWindow().getDecorView(), "Cebolla: no").isSelected()));
       click(host, "Cebolla: no");
-      i.runOnMainSync(() -> assertTrue(button(host.getWindow().getDecorView(), "Cebolla: sí").isSelected()));
+      i.runOnMainSync(
+          () -> assertTrue(button(host.getWindow().getDecorView(), "Cebolla: sí").isSelected()));
       click(host, "Reproducir");
       await(() -> button(host.getWindow().getDecorView(), "Pausar") != null);
       click(host, "Pausar");
@@ -206,18 +218,41 @@ public final class AnimationEditorTest {
       }
       assertEquals(3, frames);
       i.runOnMainSync(() -> assertEquals(2, canvas(reopened).layerCount()));
-      i.runOnMainSync(() -> reopened.setRequestedOrientation(android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
-      await(() -> reopened.getResources().getConfiguration().orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE);
+      i.runOnMainSync(
+          () ->
+              reopened.setRequestedOrientation(
+                  android.content.pm.ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
+      await(
+          () ->
+              reopened.getResources().getConfiguration().orientation
+                  == android.content.res.Configuration.ORIENTATION_LANDSCAPE);
       i.waitForIdleSync();
-      try (ParcelFileDescriptor command =
-              i.getUiAutomation()
-                  .executeShellCommand(
-                      "screencap -p" + " /sdcard/Download/animation-editor-preview.png");
-          InputStream out = new ParcelFileDescriptor.AutoCloseInputStream(command)) {
-        byte[] b = new byte[1024];
-        while (out.read(b) != -1) {}
-      }
+      SystemClock.sleep(2500); // Let the display rotation and saved-file toast finish.
+      shell("screencap -p /sdcard/Download/animation-editor-phone.png");
+      // Validate the wide tablet layout used by the design reference as well as the phone layout.
+      shell("wm size 1000x1600");
+      shell("wm density 160");
+      await(
+          () ->
+              reopened.getWindow().getDecorView().getWidth() > 1200
+                  && reopened.getResources().getConfiguration().screenWidthDp > 900);
+      i.waitForIdleSync();
+      i.runOnMainSync(
+          () -> {
+            for (String label : new String[] {"Duplicar", "Eliminar", "Más opciones"}) {
+              Button control = button(reopened.getWindow().getDecorView(), label);
+              android.graphics.Rect visible = new android.graphics.Rect();
+              assertNotNull(label, control);
+              assertTrue(label, control.getGlobalVisibleRect(visible));
+              assertEquals(label, control.getWidth(), visible.width());
+              assertEquals(label, control.getHeight(), visible.height());
+            }
+          });
+      SystemClock.sleep(1000); // Surface rotation can finish after the View hierarchy is idle.
+      shell("screencap -p /sdcard/Download/animation-editor-preview.png");
     } finally {
+      shell("wm size reset");
+      shell("wm density reset");
       if (restored != null) {
         final AnimationActivity a = restored;
         i.runOnMainSync(a::onBackPressed);

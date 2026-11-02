@@ -4,13 +4,14 @@ Aplicación Android independiente de Zaskar. **Powered By Zaskar Startup**.
 
 - Inicio propio de Animation y creación con nombre, dimensiones y FPS.
 - Herramientas y pinceles de Velyntora Core, con capas editables por fotograma.
-- Línea de tiempo con miniaturas, creación, duplicación, eliminación y reordenación.
+- Línea de tiempo con controles superiores, miniaturas numeradas, selección rosa, cabezal rojo y menú Más.
+- Creación, duplicación, eliminación y reordenación de fotogramas.
 - Exposición de 1 a 120 unidades por fotograma y reproducción en bucle de 1 a 60 FPS.
 - Piel de cebolla roja/azul de los fotogramas adyacentes.
 - Guardado de sesiones, proyectos recientes y archivos `.vlyanim` con capas.
 - Exportación de secuencia PNG a resolución completa con `timing.csv`.
 
-La rama `feature/animation-editor` contiene el piloto 0.3.0. Se valida antes de proponer su incorporación a `main`. El APK de pruebas se publica bajo `animation-preview` cuando termina correctamente GitHub Actions.
+La rama `feature/animation-editor` contiene el piloto 0.3.1. Se valida antes de proponer su incorporación a `main`. El APK de pruebas se publica bajo `animation-preview` cuando termina correctamente GitHub Actions.
 
 ## Arquitectura
 
