@@ -10,12 +10,17 @@ import java.util.function.Consumer;
 
 /** Bounded thumbnails/playback; decoding is off the UI thread. Cache eviction uses normal GC. */
 public final class FramePreviewCache {
-  private final LruCache<String, Bitmap> cache =
-      new LruCache<String, Bitmap>(24 * 1024 * 1024) {
-        protected int sizeOf(String key, Bitmap value) {
-          return value.getAllocationByteCount();
-        }
-      };
+  private final LruCache<String, Bitmap> cache;
+
+  public FramePreviewCache() { this(24 * 1024 * 1024); }
+
+  public FramePreviewCache(int bytes) {
+    cache = new LruCache<String, Bitmap>(bytes) {
+      protected int sizeOf(String key, Bitmap value) {
+        return value.getAllocationByteCount();
+      }
+    };
+  }
   private final ExecutorService worker = Executors.newSingleThreadExecutor();
   private final Handler ui = new Handler(Looper.getMainLooper());
   private final HashMap<String, ArrayList<Consumer<Bitmap>>> pending = new HashMap<>();
@@ -38,6 +43,11 @@ public final class FramePreviewCache {
       if (callbacks.size() < 32) callbacks.add(callback);
       return;
     }
+    // Fast scrubbing must not leave an unbounded queue of obsolete file decodes.
+    if (pending.size() >= 64) {
+      callback.accept(null);
+      return;
+    }
     callbacks = new ArrayList<>();
     callbacks.add(callback);
     pending.put(key, callbacks);
@@ -52,6 +62,8 @@ public final class FramePreviewCache {
             while (o.outWidth / o.inSampleSize > side || o.outHeight / o.inSampleSize > side)
               o.inSampleSize *= 2;
             o.inJustDecodeBounds = false;
+            o.inScaled = false;
+            o.inPreferredConfig = Bitmap.Config.ARGB_8888;
             bitmap = BitmapFactory.decodeFile(file.toString(), o);
           } catch (RuntimeException | OutOfMemoryError ignored) {
           }

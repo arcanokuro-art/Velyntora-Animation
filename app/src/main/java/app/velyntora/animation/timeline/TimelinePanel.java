@@ -72,7 +72,12 @@ public final class TimelinePanel extends LinearLayout {
         control("next", "Fotograma siguiente", "", () -> navigate(1)),
         new LayoutParams(dp(30), dp(88)));
     addView(frames, new LayoutParams(-1, dp(102)));
-    scroll.setOnScrollChangeListener((v, x, y, ox, oy) -> invalidate());
+    scroll.setOnScrollChangeListener((v, x, y, ox, oy) -> {
+      strip.setViewport(x, scroll.getWidth());
+      invalidate();
+    });
+    scroll.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, oright, ob) ->
+        strip.setViewport(scroll.getScrollX(), r - l));
     LinearLayout audio = row();
     audio.setPadding(dp(7), dp(4), dp(7), dp(4));
     audio.setBackground(background());
@@ -312,8 +317,9 @@ public final class TimelinePanel extends LinearLayout {
     selected = frame;
     strip.setPlaybackFrame(frame);
     counter.setText((frame + 1) + " / " + count);
-    scroll.smoothScrollTo(
-        Math.max(0, frame * strip.cell - scroll.getWidth() / 2 + strip.cell / 2), 0);
+    int left = frame * strip.cell, right = left + strip.cell;
+    if (left < scroll.getScrollX() || right > scroll.getScrollX() + scroll.getWidth())
+      scroll.scrollTo(Math.max(0, left - scroll.getWidth() / 2 + strip.cell / 2), 0);
     invalidate();
   }
 

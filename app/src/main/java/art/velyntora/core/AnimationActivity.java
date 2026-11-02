@@ -21,8 +21,9 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
   public static final String ACTION = "app.velyntora.animation.TIMELINE";
   static final int OPEN = 8101, SAVE = 8102, EXPORT = 8103, VIDEO = 8104, OUTPUT = 8105;
   private static final ExecutorService IO = Executors.newSingleThreadExecutor();
-  private final FramePreviewCache cache = new FramePreviewCache();
-  private final PlaybackController playback = new PlaybackController(cache);
+  private final FramePreviewCache cache = new FramePreviewCache(8 * 1024 * 1024);
+  private final FramePreviewCache playbackCache = new FramePreviewCache(24 * 1024 * 1024);
+  private final PlaybackController playback = new PlaybackController(playbackCache);
   private final OnionSkin onion = new OnionSkin();
   private AnimationSession session;
   private FrameDocumentAdapter adapter;
@@ -42,7 +43,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
       new Runnable() {
         public void run() {
           if (isDestroyed() || !ready) return;
-          if (busy || readProjectProgress() != null || !readDrawing().isEnabled()) {
+          if (busy || playback.running() || readProjectProgress() != null || !readDrawing().isEnabled()) {
             autosave.postDelayed(this, 1000);
             return;
           }
@@ -241,7 +242,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
       int i = selected + offset, slot = offset < 0 ? 0 : 1;
       if (i < 0 || i >= project.sequence.size()) continue;
       String asset = project.sequence.frame(i).asset;
-      cache.load(
+      playbackCache.load(
           asset,
           project.displayFile(asset,1024),
           1024,
@@ -664,6 +665,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     if(videoCancellation!=null)videoCancellation.set(true);
     if(videoProgress!=null){videoProgress.dismiss();videoProgress=null;}
     cache.close();
+    playbackCache.close();
     IO.execute(FrameDocumentAdapter::clearHistories);
     super.onDestroy();
   }

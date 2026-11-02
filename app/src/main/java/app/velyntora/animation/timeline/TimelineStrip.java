@@ -15,7 +15,9 @@ final class TimelineStrip extends View {
   private final Paint paint = new Paint(3);
   private AnimationProject project;
   private app.velyntora.animation.model.AnimationSequence sequence;
-  private int generation, active;
+  private int generation, active, viewportLeft, viewportWidth;
+  private final java.util.HashMap<String, Bitmap> visible = new java.util.HashMap<>();
+  private final java.util.HashSet<String> loading = new java.util.HashSet<>();
   int cell;
   private static final int MAX_STRIP_WIDTH = 16000000;
 
@@ -40,7 +42,18 @@ final class TimelineStrip extends View {
     // View measurement encodes its size in 24 bits. Keep every frame reachable at high density.
     cell = sequence == null ? dp(100) : Math.max(1,Math.min(dp(100),MAX_STRIP_WIDTH/(sequence.size()+1)));
     generation++;
+    loading.clear();
+    if (project == null) visible.clear();
     requestLayout();
+    invalidate();
+  }
+
+  // A hardware display list may record the entire child, not the parent's visible clip.
+  // Never infer the decode window from Canvas.getClipBounds().
+  void setViewport(int left, int width) {
+    if (viewportLeft == left && viewportWidth == width) return;
+    viewportLeft = Math.max(0, left);
+    viewportWidth = Math.max(0, width);
     invalidate();
   }
 
@@ -55,10 +68,14 @@ final class TimelineStrip extends View {
 
   protected void onDraw(Canvas c) {
     if (sequence == null) return;
-    Rect clip = c.getClipBounds();
-    int first = Math.max(0, clip.left / cell),
-        last = Math.min(sequence.size() + 1, clip.right / cell + 1),
+    int width = viewportWidth > 0 ? viewportWidth : getResources().getDisplayMetrics().widthPixels;
+    int first = Math.max(0, viewportLeft / cell - 1),
+        last = Math.min(sequence.size() + 1, (viewportLeft + width) / cell + 2),
         token = generation;
+    java.util.HashSet<String> retained = new java.util.HashSet<>();
+    for (int i = first; i < Math.min(last, sequence.size()); i++)
+      retained.add(sequence.frame(i).asset);
+    visible.keySet().retainAll(retained);
     for (int i = first; i < last; i++) {
       float x = i * cell;
       RectF tile = new RectF(x + dp(4), dp(24), x + cell - dp(4), dp(91));
@@ -85,7 +102,9 @@ final class TimelineStrip extends View {
       c.drawRoundRect(tile, dp(4), dp(4), paint);
       String asset = sequence.frame(i).asset;
       if (asset != null) {
-        Bitmap image = cache.get(asset, 128);
+        Bitmap image = visible.get(asset);
+        if (image == null) image = cache.get(asset, 128);
+        if (image != null) visible.put(asset, image);
         if (image != null) {
           float scale =
               Math.min(
@@ -101,13 +120,19 @@ final class TimelineStrip extends View {
                   tile.centerX() + w / 2,
                   tile.centerY() + h / 2),
               paint);
-        } else
+        } else if (loading.add(asset))
           cache.load(
               asset,
               project.previewFile(asset),
               128,
               imageLoaded -> {
-                if (token == generation && imageLoaded != null) invalidate();
+                if (token != generation) return;
+                loading.remove(asset);
+                if (imageLoaded != null) {
+                  // Pin only the current window; eviction cannot flash visible cells white.
+                  if (retained.contains(asset)) visible.put(asset, imageLoaded);
+                  postInvalidateOnAnimation();
+                }
               });
       }
       paint.setStyle(Paint.Style.STROKE);
