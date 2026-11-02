@@ -23,6 +23,37 @@ public final class CurveDraftTests {
   check(deletion.removeInterior(1) && deletion.x.length==2 && deletion.tension.length==2);
   check(beforeDelete.x.length==3 && beforeDelete.tension[1]==.7f);
   check(!deletion.removeInterior(1) && !deletion.removeInterior(-1));
+  // Mirroring a draft reverses its curve without changing its shape.
+  CurveDraft smooth=new CurveDraft(0,0,160,0);
+  smooth.insert(80,0,2);smooth.move(1,80,90);
+  check(!smooth.isCorner(1));
+  check(smooth.tangent(1,true)>160f/6f); // more rounded than the old three-node draft
+  check(Math.abs(smooth.segment(0,.5f,false)-smooth.segment(1,.5f,false))<.001f);
+  CurveDraft reversed=smooth.copy();
+  for(int i=0;i<3;i++){reversed.x[i]=smooth.x[2-i];reversed.y[i]=smooth.y[2-i];reversed.tension[i]=smooth.tension[2-i];}
+  for(int i=0;i<=100;i++){
+    float t=i/100f;
+    check(Math.abs(smooth.evaluate(t,true)-reversed.evaluate(1-t,true))<.001f);
+    check(Math.abs(smooth.evaluate(t,false)-reversed.evaluate(1-t,false))<.001f);
+  }
+  CurveDraft rounded=smooth.copy();smooth.setCorner(1,true);
+  check(smooth.isCorner(1) && !smooth.sameGeometry(rounded));
+  // Straight segments meet exactly at the corner when its neighbours are endpoints.
+  for(int i=1;i<100;i++){
+    float t=i/100f;
+    float px=smooth.segment(0,t,true),py=smooth.segment(0,t,false);
+    check(Math.abs(py-px*90/80)<.001f);
+  }
+  check(smooth.evaluate(.5f,true)==80 && smooth.evaluate(.5f,false)==90);
+  smooth.setCorner(1,false);check(smooth.sameGeometry(rounded));
+  smooth.setCorner(1,true);
+  CurveDraft grouped=smooth.newLine(200,200);check(grouped.others.get(0).isCorner(1));
+  CurveDraft isolated=grouped.copy();isolated.others.get(0).setCorner(1,false);
+  check(grouped.others.get(0).isCorner(1) && !grouped.sameGeometry(isolated));
+  check(smooth.removeInterior(1) && smooth.tension.length==smooth.x.length);
+  CurveDraft coincident=new CurveDraft(10,10,10,10);
+  for(int i=0;i<=100;i++)check(Float.isFinite(coincident.evaluate(i/100f,true)));
   System.out.println("Cardinal spline nodes, insertion, interpolation, tension and copy passed");
  }
 }
+

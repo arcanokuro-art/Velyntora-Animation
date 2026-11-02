@@ -1,0 +1,37 @@
+name: Linea Curva - prueba y APK
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'engine/tools/line_curve/**'
+      - 'engine/tests/Curve*'
+      - '.github/workflows/line-curve-preview.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.12'
+      - name: Verificar curvas, esquinas e historial
+        run: |
+          mkdir -p build/curve-tests
+          javac -d build/curve-tests engine/tools/line_curve/CurveDraft.java engine/tools/line_curve/CurveHistory.java engine/tests/CurveDraftTests.java engine/tests/CurveHistoryTests.java
+          java -cp build/curve-tests art.velyntora.core.CurveDraftTests
+          java -cp build/curve-tests art.velyntora.core.CurveHistoryTests
+          python engine/scripts/check_modular_boundaries.py
+      - name: Compilar y revisar APK
+        run: gradle :app:assembleDebug :app:lintDebug :drawing-engine:compileDebugAndroidTestJavaWithJavac --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Linea-Curva-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

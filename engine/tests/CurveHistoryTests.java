@@ -12,7 +12,11 @@ public final class CurveHistoryTests {
   CurveDraft again=h.redo(group);check(again.others.size()==1 && again.others.get(0).x[1]==90);
   CurveDraft changed=again.copy();changed.others.get(0).move(1,120,0);check(!changed.sameGeometry(again));
   h.record(again,changed);check(h.undo(changed).others.get(0).x[1]==90);
-  CurveDraft tensionChange=again.copy();tensionChange.setTension(0,1);h.record(again,tensionChange);check(h.undo(tensionChange).tension[0]==0);
+  CurveDraft tensionChange=again.copy();tensionChange.setTension(0,1);h.record(again,tensionChange);check(h.undo(tensionChange).tension[0]==again.tension[0]);
+  CurveDraft curved=new CurveDraft(0,0,100,0);curved.insert(50,0,2);curved.move(1,50,80);
+  CurveDraft corner=curved.copy();corner.setCorner(1,true);h.clear();h.record(curved,corner);
+  CurveDraft undoCorner=h.undo(corner);check(!undoCorner.isCorner(1));check(h.redo(undoCorner).isCorner(1));
   System.out.println("Curve drag undo/redo, isolation, branching, no-op and 120 steps back to the initial draft passed");
  }
 }
+
