@@ -259,7 +259,12 @@ public final class AnimationEditorTest {
               Button control = button(timeline, label);
               android.graphics.Rect visible = new android.graphics.Rect();
               assertNotNull(label, control);
-              assertTrue(label, control.getGlobalVisibleRect(visible));
+              boolean shown = control.getGlobalVisibleRect(visible);
+              String bounds = label + " control=" + control.getWidth() + "x" + control.getHeight()
+                  + " timeline=" + timeline.getWidth() + "x" + timeline.getHeight()
+                  + " window=" + tablet.getWindow().getDecorView().getWidth() + "x"
+                  + tablet.getWindow().getDecorView().getHeight();
+              assertTrue(bounds, shown);
               assertEquals(label, control.getWidth(), visible.width());
               assertEquals(label, control.getHeight(), visible.height());
             }
