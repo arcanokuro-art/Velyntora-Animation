@@ -32,6 +32,16 @@ public final class AnimationProject {
     return new File(directory, "objects/" + asset + ".vlycore");
   }
 
+  public File rasterFile(String asset) {
+    checkId(asset);return new File(directory,"objects/"+asset+".frame.png");
+  }
+  public boolean hasFrame(String asset) { return nativeFile(asset).length()>0||rasterFile(asset).length()>0; }
+  public File frameFile(String asset) { return nativeFile(asset).length()>0?nativeFile(asset):rasterFile(asset); }
+
+  public File displayFile(String asset,int edge) {
+    return edge>256&&rasterFile(asset).length()>0?rasterFile(asset):previewFile(asset);
+  }
+
   public File previewFile(String asset) {
     checkId(asset);
     return new File(directory, "objects/" + asset + ".png");
@@ -44,7 +54,7 @@ public final class AnimationProject {
 
   public void checkpoint() throws IOException {
     Properties props = new Properties();
-    props.setProperty("format", "VLYANIM-1");
+    props.setProperty("format", "VLYANIM-2");
     props.setProperty("title", title);
     props.setProperty("width", "" + width);
     props.setProperty("height", "" + height);
@@ -53,7 +63,7 @@ public final class AnimationProject {
     props.setProperty("count", "" + sequence.size());
     for (int i = 0; i < sequence.size(); i++) {
       Frame f = sequence.frame(i);
-      if (f.asset == null || !nativeFile(f.asset).isFile() || !previewFile(f.asset).isFile())
+      if (f.asset == null || !hasFrame(f.asset) || !previewFile(f.asset).isFile())
         throw new IOException("Fotograma sin guardar");
       props.setProperty("frame." + i, f.id + "," + f.asset + "," + f.exposure);
     }
@@ -80,7 +90,7 @@ public final class AnimationProject {
           new InputStreamReader(new FileInputStream(manifest), StandardCharsets.UTF_8)) {
         p.load(reader);
       }
-      if (!"VLYANIM-1".equals(p.getProperty("format")))
+      if (!"VLYANIM-1".equals(p.getProperty("format")) && !"VLYANIM-2".equals(p.getProperty("format")))
         throw new IOException("El archivo no es un proyecto de Velyntora Animation compatible");
       int count = Integer.parseInt(p.getProperty("count")),
           w = Integer.parseInt(p.getProperty("width")),
@@ -96,7 +106,7 @@ public final class AnimationProject {
         String[] parts = p.getProperty("frame." + i, "").split(",", -1);
         if (parts.length != 3) throw new IOException("Fotograma incompleto");
         Frame f = new Frame(parts[0], parts[1], Integer.parseInt(parts[2]));
-        if (nativeFile(f.asset).length() == 0 || previewFile(f.asset).length() == 0)
+        if (!hasFrame(f.asset) || previewFile(f.asset).length() == 0)
           throw new IOException("Faltan archivos del fotograma " + (i + 1));
         frames.add(f);
       }
@@ -118,6 +128,7 @@ public final class AnimationProject {
     for (int i = 0; i < sequence.size(); i++) {
       String key = sequence.frame(i).asset;
       keep.add(key + ".vlycore");
+      keep.add(key + ".frame.png");
       keep.add(key + ".png");
     }
     File[] files = new File(directory, "objects").listFiles();
@@ -131,7 +142,7 @@ public final class AnimationProject {
       for (int i = 0; i < sequence.size(); i++) {
         String asset = sequence.frame(i).asset;
         if (written.add(asset)) {
-          entry(zip, nativeFile(asset), "objects/" + asset + ".vlycore");
+          File frame=frameFile(asset);entry(zip,frame,"objects/"+frame.getName());
           entry(zip, previewFile(asset), "objects/" + asset + ".png");
         }
       }
@@ -158,7 +169,7 @@ public final class AnimationProject {
             || !names.add(name)
             || (!"project.properties".equals(name)
                 && !name.matches(
-                    "objects/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\\.(png|vlycore)")))
+                    "objects/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\\.(png|frame\\.png|vlycore)")))
           throw new IOException("Contenido de proyecto inválido");
         File destination = new File(directory, name);
         if (destination.exists())

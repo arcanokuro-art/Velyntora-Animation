@@ -170,11 +170,11 @@ final class AnimationSession {
       for(int i=0;i<request.frameCount;i++){
         if(canceled.get())throw new java.util.concurrent.CancellationException();
         android.graphics.Bitmap bitmap=decoder.frame(i);
+        String asset=AnimationSequence.uuid();
         try {
           if(canceled.get())throw new java.util.concurrent.CancellationException();
-          adapter.importBitmap(bitmap);
+          app.velyntora.animation.video.LosslessFrameStore.sync(app.velyntora.animation.video.LosslessFrameStore.write(next,asset,bitmap));
         } finally {bitmap.recycle();}
-        String asset=adapter.capture(next);
         frames.add(new AnimationSequence.Frame(AnimationSequence.uuid(),asset,1));
         progress.accept(i+1);
       }

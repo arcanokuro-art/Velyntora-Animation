@@ -243,7 +243,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
       String asset = project.sequence.frame(i).asset;
       cache.load(
           asset,
-          project.previewFile(asset),
+          project.displayFile(asset,1024),
           1024,
           image -> {
             if (generation != onionGeneration || isDestroyed()) return;

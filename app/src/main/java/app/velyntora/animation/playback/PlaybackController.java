@@ -48,7 +48,7 @@ public final class PlaybackController {
             String asset = project.sequence.frame(index).asset;
             cache.load(
                 asset,
-                project.previewFile(asset),
+                project.displayFile(asset,1024),
                 1024,
                 bitmap -> {
                   if (!running || token != generation) return;

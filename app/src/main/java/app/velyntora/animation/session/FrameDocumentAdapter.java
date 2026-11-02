@@ -64,6 +64,14 @@ final class FrameDocumentAdapter {
   }
 
   void load(AnimationProject project, String asset) throws IOException {
+    if(project.nativeFile(asset).length()==0&&project.rasterFile(asset).length()>0){
+      BitmapFactory.Options options=new BitmapFactory.Options();options.inPreferredConfig=Bitmap.Config.ARGB_8888;
+      options.inScaled=false;options.inSampleSize=1;
+      Bitmap image=BitmapFactory.decodeFile(project.rasterFile(asset).getAbsolutePath(),options);
+      if(image==null)throw new IOException("Fotograma PNG incompleto");
+      try{importBitmap(image);}finally{image.recycle();}
+      return;
+    }
     try (ParcelFileDescriptor fd =
         ParcelFileDescriptor.open(project.nativeFile(asset), ParcelFileDescriptor.MODE_READ_ONLY)) {
       if (!DrawingView.nativeOpenProject(fd.getFd()))

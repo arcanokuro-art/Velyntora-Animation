@@ -25,22 +25,22 @@ public final class BackgroundVideoImportTest {
  private boolean state(VideoImportJob job,String state){try{return job.status().getProperty("state").equals(state);}catch(Exception e){return false;}}
  @Test public void durableJournalResumesWithoutRewritingCompletedFrames()throws Exception{
   File file=fixture();Context c=i.getTargetContext();
-  VideoImportRequest request=new VideoImportRequest(Uri.fromFile(file),"Reanudación",0,2000000,4,64,48);
+  VideoImportRequest request=new VideoImportRequest(Uri.fromFile(file),"Reanudación",0,2000000,30,64,48);
   VideoImportJob job=VideoImportJob.create(c,request);
   try{
    DrawingView.nativeHistoryDirectory(c.getCacheDir().getAbsolutePath());DrawingView.nativeImageStorage(c.getCacheDir().getAbsolutePath());
    AtomicBoolean stop=new AtomicBoolean();
-   VideoImportRunner.run(c,job,new FrameDocumentAdapter(null),stop,n->{if(n==1)stop.set(true);});
+   VideoImportRunner.run(c,job,new FrameDocumentAdapter(null),stop,n->{if(n>0&&n<request.frameCount)stop.set(true);});
    assertTrue(state(job,"interrupted"));
    assertFalse(new File(job.projectDirectory,"project.properties").exists());
-   File first=new File(job.projectDirectory,"objects/"+job.frameId(0)+".vlycore");
+   File first=new File(job.projectDirectory,"objects/"+job.frameId(0)+".frame.png");
    assertTrue(first.length()>0);assertTrue(first.setLastModified(1000L));
    try(FileOutputStream broken=new FileOutputStream(new File(job.directory,"frames.journal"),true)){broken.write(new byte[]{1,2,3});broken.getFD().sync();}
    VideoImportRunner.run(c,VideoImportJob.load(c,job.id),new FrameDocumentAdapter(null),new AtomicBoolean(),n->{});
    assertTrue(state(job,"complete"));assertEquals(1000L,first.lastModified());
-   assertEquals(8*44,new File(job.directory,"frames.journal").length());
+   assertEquals(60*44,new File(job.directory,"frames.journal").length());
    AnimationProject result=new AnimationProject(job.projectDirectory,"x",1,1,1);result.read();
-   assertEquals(8,result.sequence.size());assertEquals(4,result.sequence.fps());
+   assertEquals(60,result.sequence.size());assertEquals(30,result.sequence.fps());
   }finally{VideoImportJob.active(c).delete();file.delete();}
  }
  @Test public void foregroundServiceFinishesAfterHomeWithoutChangingEditorCanvas()throws Exception{

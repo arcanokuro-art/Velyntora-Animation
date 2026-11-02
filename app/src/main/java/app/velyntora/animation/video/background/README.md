@@ -11,3 +11,15 @@ Android 15 usa el tipo mediaProcessing y su límite de seis horas de foreground 
 Referencias:
 https://developer.android.com/develop/background-work/services/fgs/timeout
 https://developer.android.com/develop/background-work/services/fgs/handle-user-stopping
+
+## Ruta de extracción optimizada
+
+VideoFrameDecoder hace un seek inicial al keyframe anterior al punto de reanudación y luego decodifica en orden con MediaExtractor/MediaCodec. Mantiene dos buffers YUV para elegir el fotograma más cercano al timestamp solicitado; solo convierte a RGBA los fotogramas elegidos. YuvFrameConverter convierte en C++ usando los strides, recorte, matriz BT.601/BT.709 y rango de color del decodificador.
+
+LosslessFrameStore escribe el fotograma original en objects/<uuid>.frame.png con compresión PNG sin pérdida (zlib nivel 1, filtro Sub) y una miniatura independiente de hasta 256 px. El proyecto editable nativo se materializa al abrir o editar el fotograma; no se crea durante la extracción. La reproducción y la piel de cebolla pueden leer el PNG completo, no están limitadas por la miniatura.
+
+El registro prepara entradas en memoria. Antes de confirmarlas, sincroniza los archivos de ese lote y después hace fsync del registro. Se confirma cada 24 fotogramas o aproximadamente cada segundo; una pausa normal confirma también el lote pendiente. Una caída brusca puede requerir repetir el último lote sin confirmar, sin perder los lotes confirmados. Los trabajos antiguos con fotogramas .vlycore se pueden reanudar y mezclar con nuevos fotogramas PNG.
+
+La resolución Original es la predeterminada. Solo se reduce si el usuario elige otra resolución. El motor trabaja con SDR de 8 bits; HDR, BT.2020 o salidas de mayor profundidad no se convierten silenciosamente a SDR. La reconstrucción YUV→RGB es la decodificación de video, no una copia de los bytes comprimidos originales; PNG no añade una compresión con pérdida a los píxeles resultantes. Elegir menos FPS conserva menos instantes del movimiento.
+
+El .vlyanim usa VLYANIM-2 para admitir fotogramas raster y nativos; se siguen leyendo proyectos VLYANIM-1.

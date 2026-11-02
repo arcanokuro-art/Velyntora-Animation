@@ -68,12 +68,12 @@ public final class VideoImportDialog {
     EditText fps=number(host,form,"FPS de extracción (1–30)",""+sourceFps,false);
     TextView resolution=new TextView(host);resolution.setText("Resolución de salida");form.addView(resolution);
     Spinner size=new Spinner(host);
-    String[] sizes={"Máximo 480 px","Máximo 720 px","Máximo 1080 px","Máximo 1920 px","Original (máximo 6000 px)"};
+    String[] sizes={"Máximo 480 px","Máximo 720 px","Máximo 1080 px","Máximo 1920 px","Original · sin reducir"};
     size.setAdapter(new ArrayAdapter<>(host,android.R.layout.simple_spinner_dropdown_item,sizes));
-    size.setSelection(3);form.addView(size);
+    size.setSelection(4);form.addView(size);
     TextView estimate=new TextView(host);form.addView(estimate);
     TextView note=new TextView(host);
-    note.setText("Se creará una animación nueva. Tu proyecto actual se conservará. Máximo 130 minutos (234 000 fotogramas a 30 FPS). El trabajo continúa al salir de la app. Tras apagar el dispositivo se reanuda al volver a abrir Velyntora. El audio no se importa.");
+    note.setText("Se creará una animación nueva. Tu proyecto actual se conservará. Máximo 130 minutos (234 000 fotogramas a 30 FPS). El trabajo continúa al salir de la app. Tras apagar el dispositivo se reanuda al volver a abrir Velyntora. Los fotogramas se guardan en PNG sin pérdida. Original es la resolución predeterminada; las miniaturas no afectan al fotograma. El audio no se importa.");
     form.addView(note);
     Button play=new Button(host);play.setText("Previsualizar fragmento");form.addView(play);
     ScrollView scroll=new ScrollView(host);scroll.addView(form);
@@ -87,6 +87,8 @@ public final class VideoImportDialog {
         long in=Math.round(Double.parseDouble(start.getText().toString().replace(',','.'))*1000000d);
         long out=Math.round(Double.parseDouble(end.getText().toString().replace(',','.'))*1000000d);
         if(out>duration)throw new IllegalArgumentException("El final supera la duración del video");
+        if(size.getSelectedItemPosition()==4&&Math.max(width,height)>6000)
+          throw new IllegalArgumentException("El original supera 6000 px; elige expresamente una resolución menor");
         int[] limits={480,720,1080,1920,6000};
         float scale=Math.min(1,limits[size.getSelectedItemPosition()]/(float)Math.max(width,height));
         int targetW=Math.max(1,Math.round(width*scale)),targetH=Math.max(1,Math.round(height*scale));
