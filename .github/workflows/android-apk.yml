@@ -52,11 +52,11 @@ jobs:
           disable-animations: true
           script: |
             adb shell settings put secure immersive_mode_confirmations confirmed
-            if gradle :app:connectedDebugAndroidTest --stacktrace; then result=0; else result=$?; fi
+            if gradle :app:connectedDebugAndroidTest --stacktrace; then echo 0 > build/android-test-status; else echo $? > build/android-test-status; fi
             adb logcat -d -s VIDEO_IMPORT_BENCHMARK:I '*:S' | tee build/video-import-benchmark.txt
             adb pull /sdcard/Download/animation-editor-preview.png build/animation-editor.png
             adb pull /sdcard/Download/animation-editor-phone.png build/animation-editor-phone.png
-            exit "$result"
+            exit "$(cat build/android-test-status)"
             test -f build/animation-editor.png && test -s build/animation-editor.png
       - name: Informes y captura Android
         if: always()
