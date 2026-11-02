@@ -524,6 +524,10 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
 
   @Override
   public void onBackPressed() {
+    if (!busy && readDrawing().placedImage().active()) {
+      readDrawing().placedImage().cancel();
+      return;
+    }
     if (busy) {
       closeAfterJob = true;
       return;

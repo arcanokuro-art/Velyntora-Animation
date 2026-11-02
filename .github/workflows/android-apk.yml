@@ -28,6 +28,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.12'
+          cache-read-only: false
       - name: Verificar Animation y motor nativo
         run: |
           mkdir -p build/animation-tests
