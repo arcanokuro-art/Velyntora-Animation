@@ -9,6 +9,7 @@ public final class RecentProjectsPanel {
         LinearLayout header=new LinearLayout(c);header.setGravity(Gravity.CENTER_VERTICAL);
         header.addView(text(c,"Proyectos recientes",16,true),new LinearLayout.LayoutParams(0,-2,1));
         header.addView(button(c,"Ver más »",false,actions::showRecentProjects),new LinearLayout.LayoutParams(dp(c,100),dp(c,48)));box.addView(header);
-        TextView empty=text(c,"Tus proyectos recientes aparecerán aquí.",14,false);empty.setTextColor(MUTED);empty.setGravity(Gravity.CENTER);box.addView(empty,new LinearLayout.LayoutParams(-1,dp(c,90)));return box;
+        int count=app.velyntora.animation.storage.AnimationProject.recent(new java.io.File(c.getFilesDir(),"animations")).length;
+        TextView empty=text(c,count==0?"Tus animaciones recientes aparecerán aquí.":count+" animaciones guardadas. Pulsa Ver más para continuar.",14,false);empty.setTextColor(MUTED);empty.setGravity(Gravity.CENTER);box.addView(empty,new LinearLayout.LayoutParams(-1,dp(c,90)));return box;
     }
 }

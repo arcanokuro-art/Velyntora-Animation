@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /** Android workspace modeled after Pinta's tool, canvas, palette and status regions. */
-public final class MainActivity extends Activity {
+public class MainActivity extends Activity {
   private final DocumentSession documentSession = new DocumentSession(this);
   private final StatusBar statusBar = new StatusBar(this);
   private final SelectionActions selectionActions = new SelectionActions(this);
@@ -162,8 +162,10 @@ public final class MainActivity extends Activity {
   @Override
   protected void onStop() {
     super.onStop();
-    documentSession.saveRecovery();
+    if (usesCoreRecovery()) documentSession.saveRecovery();
   }
+
+  protected boolean usesCoreRecovery() { return true; }
 
   void recoverDocument() {
     documentSession.recoverDocument();
