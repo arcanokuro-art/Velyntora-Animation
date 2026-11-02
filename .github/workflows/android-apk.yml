@@ -52,7 +52,8 @@ jobs:
           disable-animations: true
           script: |
             gradle :app:connectedDebugAndroidTest --stacktrace
-            adb pull /sdcard/Download/animation-editor.png build/animation-editor.png
+            adb pull /sdcard/Download/animation-editor-preview.png build/animation-editor.png
+            test -f build/animation-editor.png && test -s build/animation-editor.png
       - name: Informes y captura Android
         if: always()
         uses: actions/upload-artifact@v4

@@ -209,8 +209,7 @@ public final class AnimationEditorTest {
       try (ParcelFileDescriptor command =
               i.getUiAutomation()
                   .executeShellCommand(
-                      "mkdir -p /sdcard/Download && screencap -p"
-                          + " /sdcard/Download/animation-editor.png");
+                      "screencap -p" + " /sdcard/Download/animation-editor-preview.png");
           InputStream out = new ParcelFileDescriptor.AutoCloseInputStream(command)) {
         byte[] b = new byte[1024];
         while (out.read(b) != -1) {}
