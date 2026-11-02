@@ -14,7 +14,7 @@ public final class AnimationProject {
   public final AnimationSequence sequence;
   public String title;
   public int width, height;
-  private static final long MAX_MANIFEST_BYTES = 32L * 1024 * 1024;
+  private static final long MAX_MANIFEST_BYTES = 96L * 1024 * 1024;
 
   public AnimationProject(File directory, String title, int width, int height, int fps)
       throws IOException {

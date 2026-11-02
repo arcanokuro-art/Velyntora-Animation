@@ -78,7 +78,7 @@ public final class VideoImportTest {
           image.getPixels(expected[frame],0,64,0,0,64,48);image.recycle();
         }
       }
-      i.runOnMainSync(()->host.importVideo(request));
+      session.importVideo(i.getTargetContext(),request,new AtomicBoolean(),n->{});
       await(()->!busy(host)&&session.project()!=original);
       assertEquals(4,session.project().sequence.size());
       assertEquals(4,session.project().sequence.fps());
@@ -106,21 +106,21 @@ public final class VideoImportTest {
   private void rejectsImport(Runnable action){
     try{action.run();fail("Expected invalid import settings");}catch(IllegalArgumentException expected){}
   }
-  @Test public void thirtyFpsAndFortyMinuteImportBoundaries(){
+  @Test public void thirtyFpsAndHundredThirtyMinuteImportBoundaries(){
     Uri uri=Uri.parse("content://test/video");
-    long maximum=40L*60*1000000;
+    long maximum=130L*60*1000000;
     for(int fps=1;fps<=30;fps++){
-      VideoImportRequest r=new VideoImportRequest(uri,"40 minutos",0,maximum,fps,64,48);
-      assertEquals(2400*fps,r.frameCount);
+      VideoImportRequest r=new VideoImportRequest(uri,"130 minutos",0,maximum,fps,64,48);
+      assertEquals(7800*fps,r.frameCount);
       assertTrue(r.timestampUs(r.frameCount-1)<maximum);
     }
     VideoImportRequest thirtyMinutes=new VideoImportRequest(uri,"30 minutos",0,30L*60*1000000,30,64,48);
     assertEquals(54000,thirtyMinutes.frameCount);
-    VideoImportRequest fortyMinutes=new VideoImportRequest(uri,"40 minutos",0,maximum,30,64,48);
-    assertEquals(72000,fortyMinutes.frameCount);
-    assertEquals(2399966666L,fortyMinutes.timestampUs(71999));
+    VideoImportRequest fortyMinutes=new VideoImportRequest(uri,"130 minutos",0,maximum,30,64,48);
+    assertEquals(234000,fortyMinutes.frameCount);
+    assertEquals(7799966666L,fortyMinutes.timestampUs(233999));
     VideoImportRequest shifted=new VideoImportRequest(uri,"Fragmento",10000000L,10000000L+maximum,30,64,48);
-    assertEquals(72000,shifted.frameCount);
+    assertEquals(234000,shifted.frameCount);
     rejectsImport(()->new VideoImportRequest(uri,"x",0,maximum+1,1,64,48));
     rejectsImport(()->new VideoImportRequest(uri,"x",0,1000000,31,64,48));
     rejectsImport(()->new VideoImportRequest(uri,"x",0,1000000,60,64,48));

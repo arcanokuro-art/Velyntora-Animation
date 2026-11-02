@@ -32,7 +32,10 @@ final class FrameDocumentAdapter {
   }
 
   String capture(AnimationProject project) throws IOException {
-    String asset = AnimationSequence.uuid();
+    return capture(project,AnimationSequence.uuid());
+  }
+
+  String capture(AnimationProject project,String asset) throws IOException {
     try (ParcelFileDescriptor fd =
         ParcelFileDescriptor.open(
             project.nativeFile(asset),

@@ -58,6 +58,7 @@ final class AnimationSession {
   }
 
   void resume(String folder) throws IOException {
+    if(project!=null)capture();
     AnimationProject next = new AnimationProject(new File(folder), "Animación", 1280, 720, 12);
     next.read();
     replace(next);

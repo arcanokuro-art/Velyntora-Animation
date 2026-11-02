@@ -17,10 +17,10 @@ public final class VideoImportRequest {
       throw new IllegalArgumentException("Revisa el intervalo, los FPS y las dimensiones");
     long span=endUs-startUs;
     if(span>AnimationLimits.MAX_VIDEO_DURATION_US)
-      throw new IllegalArgumentException("El fragmento puede durar como máximo 40 minutos");
+      throw new IllegalArgumentException("El fragmento puede durar como máximo 130 minutos");
     long count=(span*fps+999999L)/1000000L;
     if(count<1||count>AnimationLimits.MAX_FRAMES)
-      throw new IllegalArgumentException("El fragmento supera los 72 000 fotogramas");
+      throw new IllegalArgumentException("El fragmento supera los 234 000 fotogramas");
     this.uri=uri;this.title=title;this.startUs=startUs;this.endUs=endUs;
     this.fps=fps;this.width=width;this.height=height;this.frameCount=(int)count;
   }

@@ -8,9 +8,9 @@ android {
         applicationId 'app.velyntora.animation'
         minSdk 26
         targetSdk 35
-        versionCode 9
+        versionCode 10
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
-        versionName '0.5.1-pilot'
+        versionName '0.6.0-pilot'
     }
 }
 

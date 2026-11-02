@@ -73,7 +73,7 @@ public final class VideoImportDialog {
     size.setSelection(3);form.addView(size);
     TextView estimate=new TextView(host);form.addView(estimate);
     TextView note=new TextView(host);
-    note.setText("Se creará una animación nueva. Tu proyecto actual se conservará. Máximo 40 minutos (72 000 fotogramas a 30 FPS). El audio no se importa.");
+    note.setText("Se creará una animación nueva. Tu proyecto actual se conservará. Máximo 130 minutos (234 000 fotogramas a 30 FPS). El trabajo continúa al salir de la app. Tras apagar el dispositivo se reanuda al volver a abrir Velyntora. El audio no se importa.");
     form.addView(note);
     Button play=new Button(host);play.setText("Previsualizar fragmento");form.addView(play);
     ScrollView scroll=new ScrollView(host);scroll.addView(form);

@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROCESSING"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <application android:theme="@style/Theme.Velyntora" android:label="Velyntora Animation" android:hardwareAccelerated="true">
         <activity android:name=".MainActivity" android:label="V-Animation" android:resizeableActivity="true" android:exported="true">
             <intent-filter>
@@ -8,5 +13,9 @@
             </intent-filter>
         </activity>
         <activity android:name="art.velyntora.core.AnimationActivity" android:label="Velyntora Animation" android:exported="false" android:launchMode="singleTask" android:configChanges="orientation|screenSize|smallestScreenSize|fontScale" android:theme="@android:style/Theme.Material.NoActionBar" />
+        <service android:name="art.velyntora.core.VideoImportService" android:exported="false"
+            android:process=":video_import" android:stopWithTask="false" android:foregroundServiceType="dataSync|mediaProcessing"/>
+        <activity android:name="art.velyntora.core.VideoImportStatusActivity" android:exported="false"
+            android:theme="@android:style/Theme.Material.NoActionBar"/>
     </application>
 </manifest>

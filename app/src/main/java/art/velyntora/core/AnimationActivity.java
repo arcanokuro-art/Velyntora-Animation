@@ -33,6 +33,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
   private ProgressDialog videoProgress;
   private java.util.concurrent.atomic.AtomicBoolean videoCancellation;
   private int onionGeneration;
+  private boolean importRestored;
   private app.velyntora.animation.export.ExportRequest pendingExport;
   private Runnable pendingEntry;
   private String stableSessionPath;
@@ -487,12 +488,14 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
           "Nueva animación…",
           "Abrir animación…",
           "Importar video como animación…",
+          "Ver importación de video…",
           "Insertar imagen como capa…"
         },
         new Runnable[] {
           () -> configureDimensions(0),
           this::openImage,
           this::chooseVideo,
+          () -> app.velyntora.animation.video.background.VideoImportManager.restore(this),
           () -> readDrawing().placedImage().pick()
         });
   }
@@ -551,7 +554,8 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     if(busy)return;
     stopPlayback();
     startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT)
-        .addCategory(Intent.CATEGORY_OPENABLE).setType("video/*"),VIDEO);
+        .addCategory(Intent.CATEGORY_OPENABLE).setType("video/*")
+        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION),VIDEO);
   }
 
   void importVideo(app.velyntora.animation.video.VideoImportRequest request){
@@ -559,21 +563,7 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     if(readDrawing().placedImage().active()){
       message("Confirma o cancela la imagen insertada antes de importar un video");return;
     }
-    videoCancellation=new java.util.concurrent.atomic.AtomicBoolean();
-    final java.util.concurrent.atomic.AtomicBoolean canceled=videoCancellation;
-    videoProgress=new ProgressDialog(this);
-    videoProgress.setTitle("Video a fotogramas");
-    videoProgress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-    videoProgress.setMax(request.frameCount);videoProgress.setCancelable(false);
-    videoProgress.setButton(AlertDialog.BUTTON_NEGATIVE,"Cancelar",(d,w)->{});
-    videoProgress.setOnShowListener(d->videoProgress.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(v->{
-      canceled.set(true);videoProgress.setMessage("Cancelando…");
-      videoProgress.getButton(AlertDialog.BUTTON_NEGATIVE).setEnabled(false);
-    }));
-    videoProgress.show();
-    runIO(null,()->session.importVideo(getApplicationContext(),request,canceled,done->runOnUiThread(()->{
-      if(videoProgress!=null&&!isDestroyed())videoProgress.setProgress(done);
-    })),null);
+    runIO(null,session::capture,()->app.velyntora.animation.video.background.VideoImportManager.start(this,request));
   }
 
   @Override
@@ -629,6 +619,14 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
     }
     if (stableSessionPath != null) state.putString("session", stableSessionPath);
     super.onSaveInstanceState(state);
+  }
+
+  @Override
+  protected void onResume(){
+    super.onResume();
+    if(!importRestored){importRestored=true;getWindow().getDecorView().post(()->{
+      if(!isFinishing())app.velyntora.animation.video.background.VideoImportManager.restore(this);
+    });}
   }
 
   @Override

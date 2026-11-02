@@ -2,7 +2,7 @@
 
 Implementación propia de los requisitos documentados en Velyntora-Para-Velyntora/video_to_frames_animation.
 
-Archivo → Importar video como animación… abre el selector Android. El diálogo permite previsualizar el fragmento, definir inicio/final en segundos, FPS (1–30), resolución y comprobar la cantidad de fotogramas (hasta 40 minutos y 72 000 a 30 FPS).
+Archivo → Importar video como animación… abre el selector Android. El diálogo permite previsualizar el fragmento, definir inicio/final en segundos, FPS (1–30), resolución y comprobar la cantidad de fotogramas (hasta 130 minutos y 234 000 a 30 FPS).
 
 VideoImportRequest valida el intervalo y calcula timestamps sin acumular errores. VideoFrameDecoder usa MediaMetadataRetriever y procesa un bitmap cada vez. VideoImportDialog gestiona metadatos, previsualización y configuración. AnimationSession escribe un proyecto nuevo y publica su manifiesto solo cuando la extracción se completa. Cancelar o fallar restaura el documento anterior y su historial y elimina el proyecto temporal.
 

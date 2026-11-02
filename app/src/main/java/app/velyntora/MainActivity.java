@@ -11,6 +11,7 @@ import app.velyntora.ui.start.*;
 import java.io.File;
 
 public final class MainActivity extends Activity implements StartActions {
+  private boolean importRestored;
   @Override
   public void onCreate(Bundle state) {
     super.onCreate(state);
@@ -32,6 +33,9 @@ public final class MainActivity extends Activity implements StartActions {
   protected void onResume() {
     super.onResume();
     showHome();
+    if(!importRestored){importRestored=true;getWindow().getDecorView().post(()->{
+      if(!isFinishing())app.velyntora.animation.video.background.VideoImportManager.restore(this);
+    });}
   }
 
   public void createAnimation() {
