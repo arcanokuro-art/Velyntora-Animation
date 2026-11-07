@@ -40,7 +40,7 @@ final class CommandBar {
     shortcuts.setHorizontalScrollBarEnabled(false);
     shortcuts.addView(commands);
     header.addView(shortcuts, new LinearLayout.LayoutParams(0, host.dp(48), 1));
-    host.writeDocumentTitle(host.text("Imagen no guardada — Velyntora Core"));
+    host.writeDocumentTitle(host.text("Animación sin guardar — Velyntora Animation"));
     host.readDocumentTitle().setSingleLine(true);
     host.readDocumentTitle().setEllipsize(android.text.TextUtils.TruncateAt.END);
     host.readDocumentTitle().setGravity(Gravity.CENTER);

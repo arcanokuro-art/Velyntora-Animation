@@ -486,15 +486,11 @@ public final class AnimationActivity extends MainActivity implements TimelinePan
         parent,
         title,
         new String[] {
-          "Nueva animación…",
-          "Abrir animación…",
           "Importar video como animación…",
           "Ver importación de video…",
           "Insertar imagen como capa…"
         },
         new Runnable[] {
-          () -> configureDimensions(0),
-          this::openImage,
           this::chooseVideo,
           () -> app.velyntora.animation.video.background.VideoImportManager.showCurrent(this),
           () -> readDrawing().placedImage().pick()

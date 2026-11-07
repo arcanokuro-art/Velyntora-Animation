@@ -30,15 +30,13 @@ final class EditMenu {
   void populate(LinearLayout menus) {
     host.menu(
         menus,
-        "Editar",
+        "Editar y selección",
         new String[] {
-          "Deshacer",
-          "Rehacer",
           "Copiar selección",
           "Cortar selección",
           "Pegar selección",
           "Duplicar selección",
-          "Mover contenido…",
+          "Mover selección por píxeles…",
           "Transformar selección…",
           "Seleccionar todo",
           "Invertir selección",
@@ -48,8 +46,6 @@ final class EditMenu {
           "Deseleccionar"
         },
         new Runnable[] {
-          host::undo,
-          host::redo,
           host::copySelection,
           host::cutSelection,
           host::pasteSelection,

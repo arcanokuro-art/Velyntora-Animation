@@ -1,243 +1,147 @@
 package art.velyntora.core;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.net.Uri;
-import android.os.Bundle;
-import android.view.Gravity;
-import android.view.View;
-import android.widget.Button;
-import android.widget.HorizontalScrollView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.SeekBar;
-import android.widget.TextView;
-import android.widget.Toast;
-import java.io.InputStream;
-import java.io.OutputStream;
 
-
-
+/** Basic color adjustments and grouped access to the existing advanced operations. */
 final class ColorAdjustmentsMenu {
- private final MainActivity host;
- ColorAdjustmentsMenu(MainActivity host) {this.host=host;}
+  private final MainActivity host;
+  private final AdjustmentDialogs adjustments;
+  ColorAdjustmentsMenu(MainActivity host) {
+    this.host = host;
+    this.adjustments = new AdjustmentDialogs(host, host.readDrawing());
+  }
+  void populate(LinearLayout menus) { host.button(menus, "Color", this::show); }
 
-  void populate(LinearLayout menus) {
-    host.menu(
-        menus,
-        "Extras de color",
-        new String[] {
-          "Invertir colores de capa",
-          "Escala de grises (capa)",
-          "Sepia (capa)",
-          "Aumentar brillo (+20)",
-          "Reducir brillo (-20)",
-          "Brillo personalizado…",
-          "Aumentar contraste (+20)",
-          "Reducir contraste (-20)",
-          "Contraste personalizado…",
-          "Blanco y negro (umbral 128)",
-          "Umbral personalizado…",
-          "Posterizar (4 niveles)",
-          "Posterizar personalizado…",
-          "Solarizar (umbral 128)",
-          "Solarizar personalizado…",
-          "Aumentar saturación (+20)",
-          "Reducir saturación (-20)",
-          "Saturación personalizada…",
-          "Gamma clara (120 %)",
-          "Gamma oscura (80 %)",
-          "Gamma personalizada…",
-          "Tono cálido (+15 rojo)",
-          "Tono frío (+15 azul)",
-          "Canales RGB personalizados…",
-          "Intercambiar rojo y verde",
-          "Intercambiar rojo y azul",
-          "Intercambiar verde y azul",
-          "Aumentar rojo (120 %)",
-          "Aumentar verde (120 %)",
-          "Aumentar azul (120 %)",
-          "Balance RGB personalizado…",
-          "Rotar tono (+30°)",
-          "Rotar tono (-30°)",
-          "Rotación de tono personalizada…",
-          "Ajustar niveles (16–239)",
-          "Niveles personalizados…",
-          "Exposición +20 %",
-          "Exposición -20 %",
-          "Exposición personalizada…",
-          "Escala de grises desde rojo",
-          "Escala de grises desde verde",
-          "Escala de grises desde azul",
-          "Reducir alfa de píxeles (80 %)",
-          "Aumentar alfa de píxeles (120 %)",
-          "Eliminar canal rojo",
-          "Eliminar canal verde",
-          "Eliminar canal azul",
-          "Normalizar colores de capa",
-          "Cuantizar colores (paso 16)",
-          "Cuantizar colores (paso 32)",
-          "Cuantización personalizada…",
-          "Limitar canales RGB a 224",
-          "Límite de luces personalizado…",
-          "Elevar canales RGB a 32",
-          "Añadir rojo (+20)",
-          "Añadir verde (+20)",
-          "Añadir azul (+20)"
-        },
-        new Runnable[] {
-          () -> {
-            if (!host.readDrawing().invertActiveColors()) host.message("No hay colores visibles para invertir");
-          },
-          () -> {
+  private void show() {
+    MenuChoices.show(host, "Color", new String[]{
+      "Brillo y contraste…", "Tono, saturación y luminosidad…", "Niveles…", "Curvas…", "Escala de grises (capa)", "Blanco y negro por umbral…", "Invertir colores de capa", "Sepia (capa)", "Avanzado"
+    }, () -> adjustments.openColorAdjustment(5),
+    () -> adjustments.openColorAdjustment(4),
+    this::levels,
+    () -> adjustments.openColorAdjustment(0),
+    () -> {
             if (!host.readDrawing().grayscaleActive())
               host.message("La capa ya está en escala de grises o está vacía");
           },
-          () -> {
+    host::configureThreshold,
+    () -> {
+            if (!host.readDrawing().invertActiveColors()) host.message("No hay colores visibles para invertir");
+          },
+    () -> {
             if (!host.readDrawing().sepiaActive()) host.message("La capa no tiene cambios para aplicar sepia");
           },
-          () -> {
-            if (!host.readDrawing().brightnessActive(20)) host.message("No hay cambios de brillo");
-          },
-          () -> {
-            if (!host.readDrawing().brightnessActive(-20)) host.message("No hay cambios de brillo");
-          },
-          host::configureBrightness,
-          () -> {
-            if (!host.readDrawing().contrastActive(20)) host.message("No hay cambios de contraste");
-          },
-          () -> {
-            if (!host.readDrawing().contrastActive(-20)) host.message("No hay cambios de contraste");
-          },
-          host::configureContrast,
-          () -> {
-            if (!host.readDrawing().thresholdActive(128)) host.message("La capa ya es blanco y negro o está vacía");
-          },
-          host::configureThreshold,
-          () -> {
-            if (!host.readDrawing().posterizeActive(4)) host.message("La capa no tiene cambios para posterizar");
-          },
-          host::configurePosterization,
-          () -> {
-            if (!host.readDrawing().solarizeActive(128)) host.message("La capa no tiene cambios para solarizar");
-          },
-          host::configureSolarization,
-          () -> {
-            if (!host.readDrawing().saturationActive(20)) host.message("No hay cambios de saturación");
-          },
-          () -> {
-            if (!host.readDrawing().saturationActive(-20)) host.message("No hay cambios de saturación");
-          },
-          host::configureSaturation,
-          () -> {
-            if (!host.readDrawing().gammaActive(120)) host.message("No hay cambios de gamma");
-          },
-          () -> {
-            if (!host.readDrawing().gammaActive(80)) host.message("No hay cambios de gamma");
-          },
-          host::configureGamma,
-          () -> {
+    this::advanced);
+  }
+
+  private void levels() {
+    MenuChoices.show(host, "Niveles", new String[]{
+      "Niveles por canal…", "Niveles automáticos…", "Niveles personalizados…", "Normalizar colores de capa"
+    }, () -> adjustments.openColorAdjustment(1),
+    () -> adjustments.openColorAdjustment(2),
+    host::configureLevels,
+    () -> {
+            if (!host.readDrawing().normalizeActive()) host.message("No hay cambios para normalizar");
+          });
+  }
+
+  private void advanced() {
+    MenuChoices.show(host, "Color avanzado", new String[]{
+      "Luz y exposición", "Canales RGB", "Paleta y tratamientos", "Transparencia de píxeles"
+    }, this::light,
+    this::channels,
+    this::palette,
+    this::alpha);
+  }
+
+  private void light() {
+    MenuChoices.show(host, "Luz y exposición", new String[]{
+      "Gamma personalizada…", "Exposición personalizada…", "Límite de luces personalizado…", "Elevar canales RGB a 32"
+    }, host::configureGamma,
+    host::configureExposure,
+    host::configureHighlightCeiling,
+    () -> {
+            if (!host.readDrawing().liftShadowsActive(32)) host.message("No hay cambios al elevar sombras");
+          });
+  }
+
+  private void channels() {
+    MenuChoices.show(host, "Canales RGB", new String[]{
+      "Canales RGB personalizados…", "Balance RGB personalizado…", "Tono cálido (+15 rojo)", "Tono frío (+15 azul)", "Intercambiar canales", "Eliminar un canal", "Grises desde un canal"
+    }, host::configureRgbOffsets,
+    host::configureRgbBalance,
+    () -> {
             if (!host.readDrawing().tintActive(15, 0, 0)) host.message("No hay cambios de tono");
           },
-          () -> {
+    () -> {
             if (!host.readDrawing().tintActive(0, 0, 15)) host.message("No hay cambios de tono");
           },
-          host::configureRgbOffsets,
-          () -> {
+    this::swap,
+    this::remove,
+    this::gray);
+  }
+
+  private void swap() {
+    MenuChoices.show(host, "Intercambiar canales", new String[]{
+      "Intercambiar rojo y verde", "Intercambiar rojo y azul", "Intercambiar verde y azul"
+    }, () -> {
             if (!host.readDrawing().swapChannelsActive(0)) host.message("No hay cambios de canales");
           },
-          () -> {
+    () -> {
             if (!host.readDrawing().swapChannelsActive(1)) host.message("No hay cambios de canales");
           },
-          () -> {
+    () -> {
             if (!host.readDrawing().swapChannelsActive(2)) host.message("No hay cambios de canales");
+          });
+  }
+
+  private void remove() {
+    MenuChoices.show(host, "Eliminar un canal", new String[]{
+      "Eliminar canal rojo", "Eliminar canal verde", "Eliminar canal azul"
+    }, () -> {
+            if (!host.readDrawing().removeChannelActive(0)) host.message("El canal rojo ya está vacío");
           },
-          () -> {
-            if (!host.readDrawing().colorBalanceActive(120, 100, 100)) host.message("No hay cambios de balance");
+    () -> {
+            if (!host.readDrawing().removeChannelActive(1)) host.message("El canal verde ya está vacío");
           },
-          () -> {
-            if (!host.readDrawing().colorBalanceActive(100, 120, 100)) host.message("No hay cambios de balance");
-          },
-          () -> {
-            if (!host.readDrawing().colorBalanceActive(100, 100, 120)) host.message("No hay cambios de balance");
-          },
-          host::configureRgbBalance,
-          () -> {
-            if (!host.readDrawing().hueRotateActive(30)) host.message("No hay cambios de tono");
-          },
-          () -> {
-            if (!host.readDrawing().hueRotateActive(-30)) host.message("No hay cambios de tono");
-          },
-          host::configureHue,
-          () -> {
-            if (!host.readDrawing().levelsActive(16, 239)) host.message("No hay cambios de niveles");
-          },
-          host::configureLevels,
-          () -> {
-            if (!host.readDrawing().exposureActive(120)) host.message("No hay cambios de exposición");
-          },
-          () -> {
-            if (!host.readDrawing().exposureActive(80)) host.message("No hay cambios de exposición");
-          },
-          host::configureExposure,
-          () -> {
+    () -> {
+            if (!host.readDrawing().removeChannelActive(2)) host.message("El canal azul ya está vacío");
+          });
+  }
+
+  private void gray() {
+    MenuChoices.show(host, "Grises desde un canal", new String[]{
+      "Escala de grises desde rojo", "Escala de grises desde verde", "Escala de grises desde azul"
+    }, () -> {
             if (!host.readDrawing().grayscaleFromChannelActive(0))
               host.message("No hay cambios de escala de grises");
           },
-          () -> {
+    () -> {
             if (!host.readDrawing().grayscaleFromChannelActive(1))
               host.message("No hay cambios de escala de grises");
           },
-          () -> {
+    () -> {
             if (!host.readDrawing().grayscaleFromChannelActive(2))
               host.message("No hay cambios de escala de grises");
-          },
-          () -> {
+          });
+  }
+
+  private void palette() {
+    MenuChoices.show(host, "Paleta y tratamientos", new String[]{
+      "Posterización RGB…", "Posterización uniforme…", "Solarizar personalizado…", "Cuantización personalizada…"
+    }, () -> adjustments.openColorAdjustment(3),
+    host::configurePosterization,
+    host::configureSolarization,
+    host::configureQuantization);
+  }
+
+  private void alpha() {
+    MenuChoices.show(host, "Transparencia de píxeles", new String[]{
+      "Reducir alfa de píxeles (80 %)", "Aumentar alfa de píxeles (120 %)"
+    }, () -> {
             if (!host.readDrawing().adjustAlphaActive(80)) host.message("No hay cambios de alfa");
           },
-          () -> {
+    () -> {
             if (!host.readDrawing().adjustAlphaActive(120)) host.message("No hay cambios de alfa");
-          },
-          () -> {
-            if (!host.readDrawing().removeChannelActive(0)) host.message("El canal rojo ya está vacío");
-          },
-          () -> {
-            if (!host.readDrawing().removeChannelActive(1)) host.message("El canal verde ya está vacío");
-          },
-          () -> {
-            if (!host.readDrawing().removeChannelActive(2)) host.message("El canal azul ya está vacío");
-          },
-          () -> {
-            if (!host.readDrawing().normalizeActive()) host.message("No hay cambios para normalizar");
-          },
-          () -> {
-            if (!host.readDrawing().quantizeActive(16)) host.message("No hay cambios al cuantizar");
-          },
-          () -> {
-            if (!host.readDrawing().quantizeActive(32)) host.message("No hay cambios al cuantizar");
-          },
-          host::configureQuantization,
-          () -> {
-            if (!host.readDrawing().clampHighlightsActive(224)) host.message("No hay cambios al limitar colores");
-          },
-          host::configureHighlightCeiling,
-          () -> {
-            if (!host.readDrawing().liftShadowsActive(32)) host.message("No hay cambios al elevar sombras");
-          },
-          () -> {
-            if (!host.readDrawing().adjustChannelActive(0, 20)) host.message("No hay cambios en rojo");
-          },
-          () -> {
-            if (!host.readDrawing().adjustChannelActive(1, 20)) host.message("No hay cambios en verde");
-          },
-          () -> {
-            if (!host.readDrawing().adjustChannelActive(2, 20)) host.message("No hay cambios en azul");
-          }
-        });
+          });
   }
 }

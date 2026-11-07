@@ -143,6 +143,12 @@ public final class AnimationEditorTest {
       idle(host, 1, 0);
       i.runOnMainSync(
           () -> {
+            LinearLayout menu = host.readMenuRegistry();
+            String[] sections = {"Archivo", "Editar y selección", "Lienzo e imagen",
+                "Color", "Efectos", "Ver", "Ayuda"};
+            assertEquals(sections.length, menu.getChildCount());
+            for (int section = 0; section < sections.length; section++)
+              assertEquals(sections[section], ((Button) menu.getChildAt(section)).getText().toString());
             assertEquals(96, canvas(host).documentWidth());
             assertEquals(64, canvas(host).documentHeight());
             assertTrue(canvas(host).addLayer());

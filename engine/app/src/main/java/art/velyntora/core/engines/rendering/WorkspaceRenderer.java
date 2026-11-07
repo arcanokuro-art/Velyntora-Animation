@@ -14,15 +14,18 @@ final class WorkspaceRenderer {
     canvas.rotate((float) v.viewport.angle);
     canvas.scale(scale, scale);
     canvas.translate(-v.canvasWidth / 2f, -v.canvasHeight / 2f);
+    canvas.save();
     canvas.clipRect(0, 0, v.canvasWidth, v.canvasHeight);
     Checkerboard.draw(canvas,v.canvasWidth,v.canvasHeight);
     // Interpolate only when reducing the image. Enlarged source pixels stay sharp.
     v.paint.setFilterBitmap(scale < 1f);
     if(!v.placedImage().drawBase(canvas) && !v.selectionDragPreview.draw(canvas))v.drawCanvasPixels(canvas);
 
-    if(v.placedImage().active())v.placedImage().draw(canvas,scale);
+    if(v.placedImage().active())v.placedImage().drawContent(canvas);
     else {if (v.isEnabled()) Tools.controller(v.tool).preview(v, canvas, scale);
       v.selectionDragPreview.contour(canvas, scale);}
+    canvas.restore();
+    if(v.placedImage().active())v.placedImage().drawOverlay(canvas,scale);
     canvas.restore();
   }
 }
