@@ -39,9 +39,7 @@ final class ViewMenu {
           "Zoom 7000 %",
           "Rotar vista 15° derecha",
           "Rotar vista 15° izquierda",
-          "Restablecer rotación",
-          "Mostrar / ocultar herramientas",
-          "Mostrar / ocultar capas"
+          "Restablecer rotación"
         },
         new Runnable[] {
           host.readDrawing()::fitCanvas,
@@ -51,9 +49,7 @@ final class ViewMenu {
           () -> host.readDrawing().setZoomPercent(7000),
           () -> host.readDrawing().rotateView(15),
           () -> host.readDrawing().rotateView(-15),
-          () -> host.readDrawing().rotateView(-host.readDrawing().rotationDegrees()),
-          () -> host.togglePanel(host.readToolScroll()),
-          () -> host.togglePanel(host.readLayerScroll())
+          () -> host.readDrawing().rotateView(-host.readDrawing().rotationDegrees())
         });
   }
 }

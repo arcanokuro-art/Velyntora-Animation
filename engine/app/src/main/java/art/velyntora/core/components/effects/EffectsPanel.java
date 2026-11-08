@@ -192,6 +192,14 @@ final class EffectsPanel {
         });
     form.addView(value);
     form.addView(slider);
+    LinearLayout presets = new LinearLayout(host);
+    for (int percent : new int[]{80, 100, 120}) {
+      Button button = new Button(host);
+      button.setText(percent + " %");
+      button.setOnClickListener(view -> slider.setProgress(percent - 10));
+      presets.addView(button, new LinearLayout.LayoutParams(0, -2, 1));
+    }
+    form.addView(presets);
     new AlertDialog.Builder(host)
         .setTitle("Ajustar gamma de capa")
         .setView(host.scrollForm(form))
@@ -404,6 +412,14 @@ final class EffectsPanel {
         });
     form.addView(value);
     form.addView(slider);
+    LinearLayout presets = new LinearLayout(host);
+    for (int percent : new int[]{80, 100, 120}) {
+      Button button = new Button(host);
+      button.setText(percent + " %");
+      button.setOnClickListener(view -> slider.setProgress(percent - 10));
+      presets.addView(button, new LinearLayout.LayoutParams(0, -2, 1));
+    }
+    form.addView(presets);
     new AlertDialog.Builder(host)
         .setTitle("Ajustar exposición de capa")
         .setView(host.scrollForm(form))

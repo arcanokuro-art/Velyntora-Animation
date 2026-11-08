@@ -1076,9 +1076,14 @@ public final class DrawingView extends View {
 
   final Paint checkerPaint = new Paint();
 
+  /** Optional Animation-owned overlay; the drawing engine does not own frames or playback. */
+  public interface AnimationOverlay { void draw(Canvas canvas, Viewport viewport, int width, int height); }
+  private AnimationOverlay animationOverlay;
+  public void setAnimationOverlay(AnimationOverlay overlay) { animationOverlay = overlay; invalidate(); }
   @Override
   protected void onDraw(Canvas canvas) {
     canvasRendering.onDraw(canvas);
+    if (animationOverlay != null) animationOverlay.draw(canvas, viewport, canvasWidth, canvasHeight);
   }
 
   void selectMatchingRegion(int sx, int sy) {

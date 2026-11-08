@@ -1,7 +1,7 @@
-name: Android piloto integrado
+name: Android Animation
 on:
   push:
-    branches: [main]
+    branches: [main, feature/animation-editor]
     paths-ignore: ['scripts/integrate_core.py', '.github/workflows/import-core.yml']
   workflow_dispatch:
   workflow_call:
@@ -12,8 +12,8 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: animation-pilot-build
-  cancel-in-progress: false
+  group: animation-build-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -28,13 +28,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.12'
-      - name: Verificar arquitectura y motor nativo
+          cache-read-only: false
+      - name: Verificar Animation y motor nativo
         run: |
+          mkdir -p build/animation-tests
+          javac -d build/animation-tests app/src/main/java/app/velyntora/animation/{model/AnimationLimits.java,model/AnimationSequence.java,storage/AnimationProject.java,playback/PlaybackClock.java} tests/AnimationModelTests.java
+          java -cp build/animation-tests AnimationModelTests
           python engine/scripts/check_modular_boundaries.py
           cmake -S engine/tests -B build/core-tests -DCMAKE_BUILD_TYPE=Debug
           cmake --build build/core-tests --parallel 2
           ctest --test-dir build/core-tests --output-on-failure
-      - run: gradle :app:assembleDebug :app:lintDebug --stacktrace
+      - run: gradle :app:assembleDebug :app:lintDebug :app:assembleDebugAndroidTest --stacktrace
       - name: Habilitar KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -42,26 +46,44 @@ jobs:
           sudo udevadm trigger --name-match=kvm
       - uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 29
+          api-level: 35
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          script: gradle :app:connectedDebugAndroidTest --stacktrace
-      - name: Informes de pruebas Android
+          script: |
+            adb shell settings put secure immersive_mode_confirmations confirmed
+            if gradle :app:connectedDebugAndroidTest --stacktrace; then echo 0 > build/android-test-status; else echo $? > build/android-test-status; fi
+            adb logcat -d -s VIDEO_IMPORT_BENCHMARK:I ANIMATION_STABILITY:I '*:S' | tee build/video-import-benchmark.txt
+            adb pull /sdcard/Download/animation-editor-preview.png build/animation-editor.png
+            adb pull /sdcard/Download/animation-editor-phone.png build/animation-editor-phone.png
+            exit "$(cat build/android-test-status)"
+            test -f build/animation-editor.png && test -s build/animation-editor.png
+      - name: Informes y captura Android
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: animation-integration-test-results
           path: |
-            app/build/reports/androidTests/
+            app/build/reports/
             app/build/outputs/androidTest-results/
+            build/animation-editor*.png
+            build/video-import-benchmark.txt
       - run: cp app/build/outputs/apk/debug/app-debug.apk Velyntora-Animation-pilot.apk
       - uses: actions/upload-artifact@v4
         with:
           name: Velyntora-Animation-pilot
           path: Velyntora-Animation-pilot.apk
           if-no-files-found: error
+      - name: Publicar APK de prueba
+        if: github.ref == 'refs/heads/feature/animation-editor'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view animation-preview >/dev/null 2>&1 || gh release create animation-preview --title "Velyntora Animation 0.7.3 · Pruebas" --notes "Editor de animación en rama de pruebas: fotogramas, capas, línea de tiempo, reproducción y proyectos." --prerelease --target "${{ github.sha }}"
+          gh release edit animation-preview --title "Velyntora Animation 0.7.3 · Pruebas" --notes "Opción de esquinas en Línea/Curva. Menú reorganizado en siete secciones y guías de encaje para mover o redimensionar imágenes y textos. Conserva la importación de video y las exportaciones de Animation." --prerelease
+          gh release upload animation-preview Velyntora-Animation-pilot.apk --clobber
       - name: Publicar APK piloto
+        if: github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

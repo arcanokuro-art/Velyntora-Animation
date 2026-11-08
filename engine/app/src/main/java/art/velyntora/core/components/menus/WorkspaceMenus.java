@@ -32,7 +32,7 @@ final class WorkspaceMenus {
     for (int i = 0; i < labels.length; i++)
       labels[i] = ((Button) host.readMenuRegistry().getChildAt(i)).getText().toString();
     new AlertDialog.Builder(host)
-        .setTitle("Velyntora Core")
+        .setTitle("Velyntora Animation")
         .setItems(labels, (dialog, index) -> host.readMenuRegistry().getChildAt(index).performClick())
         .show();
   }
@@ -56,12 +56,10 @@ final class WorkspaceMenus {
     LinearLayout menus = host.row();
     new FileMenu(host).populate(menus);
     new EditMenu(host).populate(menus);
-    new ViewMenu(host).populate(menus);
-    new AdjustmentDialogs(host, host.readDrawing()).addMenu(menus);
-    new ColorAdjustmentsMenu(host).populate(menus);
     new ImageMenu(host).populate(menus);
-    new ToolsMenu(host).populate(menus);
+    new ColorAdjustmentsMenu(host).populate(menus);
     new EffectsMenu(host).populate(menus);
+    new ViewMenu(host).populate(menus);
     new HelpMenu(host).populate(menus);
     host.writeMenuRegistry(menus);
 

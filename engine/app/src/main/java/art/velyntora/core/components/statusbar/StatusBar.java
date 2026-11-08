@@ -29,7 +29,7 @@ final class StatusBar {
 
   void updateStatus() {
     if (host.readDocumentTitle() != null)
-      host.readDocumentTitle().setText(host.readDocumentName() + (host.dirty() ? " • Sin guardar" : "") + " — Velyntora Core");
+      host.readDocumentTitle().setText(host.readDocumentName() + (host.dirty() ? " • Sin guardar" : "") + " — Velyntora Animation");
     if (host.readStatus() == null) return;
     host.readStatus().setText(
         String.format(

@@ -6,11 +6,11 @@ import android.view.*;
 /** Animation start-screen entry; preserves Core's document protection and import pipeline. */
 final class EditorEntry {
     private EditorEntry(){}
-    static boolean hasRequest(Intent intent){return intent!=null && ("app.velyntora.animation.CREATE".equals(intent.getAction()) || "app.velyntora.animation.OPEN".equals(intent.getAction()));}
+    static boolean hasRequest(Intent intent){return intent!=null && ("app.velyntora.animation.TIMELINE".equals(intent.getAction()) || "app.velyntora.animation.CREATE".equals(intent.getAction()) || "app.velyntora.animation.OPEN".equals(intent.getAction()));}
     static void enter(MainActivity host,Bundle state){
         Intent intent=host.getIntent();
-        if(state!=null || !hasRequest(intent))return;
-        if("app.velyntora.animation.CREATE".equals(intent.getAction()))host.protectDocument(()->host.configureDimensions(0));
+        if(state!=null || !hasRequest(intent) || "app.velyntora.animation.TIMELINE".equals(intent.getAction()))return;
+        if("app.velyntora.animation.TIMELINE".equals(intent.getAction()) || "app.velyntora.animation.CREATE".equals(intent.getAction()))host.protectDocument(()->host.configureDimensions(0));
         else if(intent.getData()!=null)host.protectDocument(()->host.openDetected(intent.getData()));
     }
     static void immersive(Window window){

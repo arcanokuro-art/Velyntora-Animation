@@ -17,66 +17,44 @@ final class AdjustmentDialogs {
     drawing = d;
   }
 
-  void addMenu(LinearLayout parent) {
-    Button b = new Button(activity);
-    b.setText("Ajustes");
-    parent.addView(b);
-    b.setOnClickListener(
-        v ->
-            new AlertDialog.Builder(activity)
-                .setTitle("Ajustes de color")
-                .setItems(
-                    new String[] {
-                      "Curvas…",
-                      "Niveles por canal…",
-                      "Niveles automáticos…",
-                      "Posterización RGB…",
-                      "Tono / saturación / luminosidad…",
-                      "Brillo / contraste…",
-                      "Blanco y negro",
-                      "Invertir colores",
-                      "Sepia"
-                    },
-                    (dialog, index) -> {
-                      if (index == 0) curves();
-                      else if (index == 1) levels();
-                      else if (index == 2)
-                        parameters(
-                            "Niveles automáticos",
-                            2,
-                            new String[] {"Recorte por extremo (‰)"},
-                            new int[] {0},
-                            new int[] {50},
-                            new int[] {5});
-                      else if (index == 3)
-                        parameters(
-                            "Posterización RGB",
-                            3,
-                            new String[] {"Rojo", "Verde", "Azul"},
-                            new int[] {2, 2, 2},
-                            new int[] {256, 256, 256},
-                            new int[] {4, 4, 4});
-                      else if (index == 5)
-                        parameters(
-                            "Brillo / contraste",
-                            5,
-                            new String[] {"Brillo (%)", "Contraste (%)"},
-                            new int[] {-100, -100},
-                            new int[] {100, 100},
-                            new int[] {0, 0});
-                      else if (index >= 6)
-                        activity.runColorOperation(
-                            () -> drawing.colorAdjustment(6, new int[] {index - 6}));
-                      else
-                        parameters(
-                            "Tono / saturación / luminosidad",
-                            4,
-                            new String[] {"Tono (°)", "Saturación (%)", "Luminosidad (%)"},
-                            new int[] {-180, 0, -100},
-                            new int[] {180, 200, 100},
-                            new int[] {0, 100, 0});
-                    })
-                .show());
+  void openColorAdjustment(int index) {
+    if (index == 0) curves();
+    else if (index == 1) levels();
+    else if (index == 2)
+      parameters(
+          "Niveles automáticos",
+          2,
+          new String[] {"Recorte por extremo (‰)"},
+          new int[] {0},
+          new int[] {50},
+          new int[] {5});
+    else if (index == 3)
+      parameters(
+          "Posterización RGB",
+          3,
+          new String[] {"Rojo", "Verde", "Azul"},
+          new int[] {2, 2, 2},
+          new int[] {256, 256, 256},
+          new int[] {4, 4, 4});
+    else if (index == 5)
+      parameters(
+          "Brillo / contraste",
+          5,
+          new String[] {"Brillo (%)", "Contraste (%)"},
+          new int[] {-100, -100},
+          new int[] {100, 100},
+          new int[] {0, 0});
+    else if (index >= 6)
+      activity.runColorOperation(
+          () -> drawing.colorAdjustment(6, new int[] {index - 6}));
+    else
+      parameters(
+          "Tono / saturación / luminosidad",
+          4,
+          new String[] {"Tono (°)", "Saturación (%)", "Luminosidad (%)"},
+          new int[] {-180, 0, -100},
+          new int[] {180, 200, 100},
+          new int[] {0, 100, 0});
   }
 
   void openBlurMenu() {
@@ -88,7 +66,7 @@ final class AdjustmentDialogs {
         .show();
   }
 
-  private void blurDialog(int kind) {
+  void blurDialog(int kind) {
     String[] titles = {"Gaussiano", "Movimiento", "Radial", "Zoom"};
     LinearLayout f = form();
     int[] values = {kind == 0 ? 3 : 10, 0, 50, 50};
@@ -125,7 +103,7 @@ final class AdjustmentDialogs {
         .show();
   }
 
-  private void distortionDialog(int kind) {
+  void distortionDialog(int kind) {
     LinearLayout f = form();
     int[] values = {40, 50, 0, 50, 50};
     slider(
@@ -152,24 +130,7 @@ final class AdjustmentDialogs {
                         kind, values[0], values[1], values[2], values[3], values[4])));
   }
 
-  void openArtisticMenu() {
-    new AlertDialog.Builder(activity)
-        .setTitle("Arte y fotografía")
-        .setItems(
-            new String[] {
-              "Pintura al óleo",
-              "Boceto a lápiz",
-              "Boceto a tinta",
-              "Resplandor",
-              "Retrato suave",
-              "Mediana / percentil",
-              "Reducir ojos rojos"
-            },
-            (d, kind) -> artisticDialog(kind))
-        .show();
-  }
-
-  private void artisticDialog(int kind) {
+  void artisticDialog(int kind) {
     LinearLayout f = form();
     int[] values = {kind == 0 ? 8 : kind == 5 ? 50 : 100, 2, 80};
     if (kind == 6) label(f, "Selecciona el área de los ojos para limitar la corrección.");
@@ -185,7 +146,7 @@ final class AdjustmentDialogs {
     if (kind == 2 || kind == 6)
       slider(f, kind == 2 ? "Umbral de contorno" : "Rojo mínimo", 0, 255, 80, n -> values[2] = n);
     show(
-        "Arte y fotografía",
+        new String[]{"Pintura al óleo","Boceto a lápiz","Boceto a tinta","Resplandor","Retrato suave","Mediana / percentil","Reducir ojos rojos"}[kind],
         f,
         () ->
             activity.runColorOperation(
@@ -244,25 +205,7 @@ final class AdjustmentDialogs {
         });
   }
 
-  void openUtilityMenu() {
-    new AlertDialog.Builder(activity)
-        .setTitle("Más filtros")
-        .setItems(
-            new String[] {
-              "Fragmentar",
-              "Desenfoque de lente",
-              "Abolladuras",
-              "Inversión polar",
-              "Reducir ruido",
-              "Contorno de bordes",
-              "Relieve direccional",
-              "Tramado ordenado"
-            },
-            (d, kind) -> utilityDialog(kind))
-        .show();
-  }
-
-  private void utilityDialog(int kind) {
+  void utilityDialog(int kind) {
     LinearLayout f = form();
     int[] values = {
       kind == 0 || kind == 1 ? 4 : 100,
@@ -308,7 +251,7 @@ final class AdjustmentDialogs {
         .show();
   }
 
-  private void objectDialog(int kind) {
+  void objectDialog(int kind) {
     LinearLayout f = form();
     label(
         f,
@@ -373,7 +316,7 @@ final class AdjustmentDialogs {
     void accept(int value);
   }
 
-  private void slider(
+  private SeekBar slider(
       LinearLayout f, String title, int min, int max, int initial, ValueChanged update) {
     TextView t = label(f, title + ": " + initial);
     SeekBar s = new SeekBar(activity);
@@ -392,6 +335,7 @@ final class AdjustmentDialogs {
 
           public void onStopTrackingTouch(SeekBar b) {}
         });
+    return s;
   }
 
   private void show(String title, LinearLayout f, Runnable apply) {
@@ -410,7 +354,21 @@ final class AdjustmentDialogs {
     LinearLayout f = form();
     for (int i = 0; i < names.length; i++) {
       final int index = i;
-      slider(f, names[i], min[i], max[i], values[i], n -> values[index] = n);
+      SeekBar control = slider(f, names[i], min[i], max[i], values[i], n -> values[index] = n);
+      if (kind == 5 || (kind == 4 && i < 2)) {
+        int[] presets = kind == 5 ? new int[]{-20, 0, 20}
+          : i == 0 ? new int[]{-30, 0, 30} : new int[]{80, 100, 120};
+        LinearLayout quick = new LinearLayout(activity);
+        for (int value : presets) {
+          Button button = new Button(activity);
+          button.setText(Integer.toString(value));
+          button.setContentDescription(names[i] + ": " + value);
+          int minimum = min[i];
+          button.setOnClickListener(view -> control.setProgress(value - minimum));
+          quick.addView(button, new LinearLayout.LayoutParams(0, -2, 1));
+        }
+        f.addView(quick);
+      }
     }
     show(title, f, () -> activity.runColorOperation(() -> drawing.colorAdjustment(kind, values)));
   }

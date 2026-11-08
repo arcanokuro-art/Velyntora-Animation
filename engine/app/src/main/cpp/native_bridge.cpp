@@ -19,3 +19,9 @@
 #include "text/TextPreviewBridge.inc"
 
 #include "brush/VelyntoraBrushBridge.inc"
+
+#include "animation/FrameHistory.inc"
+
+#ifdef __ANDROID__
+#include "video/VideoPixels.inc"
+#endif
