@@ -29,14 +29,27 @@ final class CurvePointMenu {
   void show(DrawingView view,int index){
     if(view.curve==null || index<=0 || index>=view.curve.x.length-1)return;
     CurveDraft target=view.curve,atOpen=target.copy();
+    LinearLayout actions=new LinearLayout(view.getContext());actions.setOrientation(LinearLayout.VERTICAL);
+    Button mode=new Button(view.getContext());mode.setAllCaps(false);
+    mode.setText(target.isCorner(index)?"Convertir en curva":"Convertir en esquina");
+    mode.setContentDescription(mode.getText());mode.setTextColor(0xFFFFFFFF);
+    actions.addView(mode);
     Button delete=new Button(view.getContext());delete.setAllCaps(false);delete.setText("Borrar punto");
     delete.setContentDescription("Borrar punto interior");delete.setTextColor(0xFFFFFFFF);
     delete.setCompoundDrawablesWithIntrinsicBounds(android.R.drawable.ic_menu_delete,0,0,0);
     int padding=Math.round(12*view.getResources().getDisplayMetrics().density);delete.setPadding(padding,padding,padding,padding);
     GradientDrawable background=new GradientDrawable();background.setColor(0xFF383838);background.setCornerRadius(padding);
-    delete.setBackground(background);
-    popup=new PopupWindow(delete,ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT,true);
+    actions.setBackground(background);actions.addView(delete);
+    popup=new PopupWindow(actions,ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT,true);
     popup.setBackgroundDrawable(background);popup.setOutsideTouchable(true);popup.setElevation(padding);
+    mode.setOnClickListener(clicked->{
+      if(view.curve==target && target.sameGeometry(atOpen)){
+        CurveDraft before=target.copy();
+        target.setCorner(index,!target.isCorner(index));
+        view.curveHistory.record(before,target);view.viewportChanged();
+      }
+      dismiss();
+    });
     delete.setOnClickListener(clicked->{
       if(view.curve==target && target.sameGeometry(atOpen)){
         CurveDraft before=target.copy();
@@ -44,12 +57,13 @@ final class CurvePointMenu {
       }
       dismiss();
     });
-    delete.measure(View.MeasureSpec.UNSPECIFIED,View.MeasureSpec.UNSPECIFIED);
+    actions.measure(View.MeasureSpec.UNSPECIFIED,View.MeasureSpec.UNSPECIFIED);
     int[] location=new int[2];view.getLocationInWindow(location);
     int width=view.getResources().getDisplayMetrics().widthPixels,height=view.getResources().getDisplayMetrics().heightPixels;
     int x=location[0]+Math.round((float)view.viewport.screenX(target.x[index],target.y[index]));
     int y=location[1]+Math.round((float)view.viewport.screenY(target.x[index],target.y[index]))+padding;
-    popup.showAtLocation(view,Gravity.TOP|Gravity.LEFT,Math.max(0,Math.min(width-delete.getMeasuredWidth(),x)),Math.max(0,Math.min(height-delete.getMeasuredHeight(),y)));
+    popup.showAtLocation(view,Gravity.TOP|Gravity.LEFT,Math.max(0,Math.min(width-actions.getMeasuredWidth(),x)),Math.max(0,Math.min(height-actions.getMeasuredHeight(),y)));
   }
   void dismiss(){if(popup!=null){popup.dismiss();popup=null;}}
 }
+

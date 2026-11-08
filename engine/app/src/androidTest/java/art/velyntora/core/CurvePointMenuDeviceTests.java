@@ -41,6 +41,21 @@ public final class CurvePointMenuDeviceTests {
     inst.runOnMainSync(host::undo);LargeImportResponsivenessTests.waitResponsive(inst,host);
     inst.runOnMainSync(()->assertEquals(2,host.readDrawing().curve.x.length));
   }
+  @Test public void cornerToggleSupportsUndoRedoAndConfirmation() {
+    gesture(100,50,100,50);
+    AccessibilityNodeInfo root=inst.getUiAutomation().getRootInActiveWindow();
+    java.util.List<AccessibilityNodeInfo> nodes=root.findAccessibilityNodeInfosByText("Convertir en esquina");
+    assertFalse(nodes.isEmpty());assertTrue(nodes.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK));inst.waitForIdleSync();
+    inst.runOnMainSync(()->assertTrue(host.readDrawing().curve.isCorner(1)));
+    inst.runOnMainSync(host::undo);inst.runOnMainSync(()->assertFalse(host.readDrawing().curve.isCorner(1)));
+    inst.runOnMainSync(host::redo);inst.runOnMainSync(()->assertTrue(host.readDrawing().curve.isCorner(1)));
+    inst.runOnMainSync(()->assertTrue(host.readDrawing().confirmCurve()));
+    inst.runOnMainSync(host::undo);inst.runOnMainSync(()->assertTrue(host.readDrawing().curve.isCorner(1)));
+    gesture(100,50,100,50);
+    root=inst.getUiAutomation().getRootInActiveWindow();nodes=root.findAccessibilityNodeInfosByText("Convertir en curva");
+    assertFalse(nodes.isEmpty());assertTrue(nodes.get(0).performAction(AccessibilityNodeInfo.ACTION_CLICK));inst.waitForIdleSync();
+    inst.runOnMainSync(()->assertFalse(host.readDrawing().curve.isCorner(1)));
+  }
   @Test public void endpointsDoNotOpenMenuAndInteriorDragDoesNotOpenMenu(){
     gesture(20,50,20,50);assertTrue(deleteNodes().isEmpty());
     gesture(180,50,180,50);assertTrue(deleteNodes().isEmpty());
@@ -53,3 +68,4 @@ public final class CurvePointMenuDeviceTests {
     gesture(100,50,100,50);assertFalse(deleteNodes().isEmpty());
   }
 }
+

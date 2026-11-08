@@ -119,6 +119,7 @@ final class LineCurveTool implements DrawingTool {
       style.setStyle(Paint.Style.STROKE);
       style.setStrokeWidth(v.brushRadius * 2);
       style.setStrokeCap(Paint.Cap.SQUARE);
+      style.setStrokeJoin(Paint.Join.MITER);
       new Canvas(image).drawPath(v.curvePath(), style);
       int[] data = new int[2 + v.canvasWidth * v.canvasHeight];
       data[0] = v.canvasWidth;
@@ -228,6 +229,7 @@ final class LineCurveTool implements DrawingTool {
     preview.setStyle(Paint.Style.STROKE);
     preview.setStrokeWidth(v.brushRadius * 2);
     preview.setStrokeCap(Paint.Cap.SQUARE);
+    preview.setStrokeJoin(Paint.Join.MITER);
     canvas.drawPath(v.curvePath(), preview);
     preview.setStyle(Paint.Style.FILL);
     preview.setColor(0xff7040b0);
@@ -236,15 +238,22 @@ final class LineCurveTool implements DrawingTool {
     drawNodes(canvas,v.curve,scale,preview);
   }
 
+  private static void drawNode(Canvas canvas, CurveDraft curve, int i, float scale, Paint paint) {
+    float r=5/scale;
+    if(curve.isCorner(i)) canvas.drawRect(curve.x[i]-r,curve.y[i]-r,curve.x[i]+r,curve.y[i]+r,paint);
+    else canvas.drawCircle(curve.x[i],curve.y[i],r,paint);
+  }
+
   private static void drawNodes(Canvas canvas, CurveDraft curve, float scale, Paint paint) {
     for (int i=0;i<curve.x.length;i++) {
       paint.setStyle(Paint.Style.FILL);
       paint.setColor(0xffffffff);
-      canvas.drawCircle(curve.x[i],curve.y[i],5/scale,paint);
+      drawNode(canvas,curve,i,scale,paint);
       paint.setStyle(Paint.Style.STROKE);
       paint.setStrokeWidth(1.5f/scale);
       paint.setColor(0xff7040b0);
-      canvas.drawCircle(curve.x[i],curve.y[i],5/scale,paint);
+      drawNode(canvas,curve,i,scale,paint);
     }
   }
 }
+
