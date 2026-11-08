@@ -135,6 +135,63 @@ public final class AnimationEditorTest {
   }
 
   @Test
+  public void animationEditorCanConvertAnInteriorCurvePointToCorner() {
+    AnimationActivity host = launch(null);
+    try {
+      idle(host, 1, 0);
+      i.runOnMainSync(() -> {
+        DrawingView view = canvas(host);
+        view.setTool(DrawingView.LINE);
+        view.curve = new CurveDraft(12, 32, 84, 32);
+        view.curve.insert(48, 32, 2);
+        view.curveHistory.clear();
+        long now = SystemClock.uptimeMillis();
+        float x = (float) view.readViewport().screenX(48, 32);
+        float y = (float) view.readViewport().screenY(48, 32);
+        MotionEvent down = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, x, y, 0);
+        MotionEvent up = MotionEvent.obtain(now, now + 20, MotionEvent.ACTION_UP, x, y, 0);
+        try {
+          view.onTouchEvent(down);
+          view.onTouchEvent(up);
+        } finally {
+          down.recycle();
+          up.recycle();
+        }
+      });
+      String label = "Convertir en esquina";
+      boolean clicked = false;
+      long deadline = SystemClock.uptimeMillis() + 5000;
+      do {
+        i.waitForIdleSync();
+        android.view.accessibility.AccessibilityNodeInfo root =
+            i.getUiAutomation().getRootInActiveWindow();
+        if (root != null) {
+          for (android.view.accessibility.AccessibilityNodeInfo node :
+              root.findAccessibilityNodeInfosByText(label)) {
+            if (node.performAction(android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)) {
+              clicked = true;
+              break;
+            }
+          }
+        }
+        if (!clicked) SystemClock.sleep(30);
+      } while (!clicked && SystemClock.uptimeMillis() < deadline);
+      assertTrue("No se pudo elegir Convertir en esquina", clicked);
+      i.runOnMainSync(() -> assertTrue(canvas(host).curve.isCorner(1)));
+      i.runOnMainSync(host::undo);
+      i.runOnMainSync(() -> assertFalse(canvas(host).curve.isCorner(1)));
+      i.runOnMainSync(host::redo);
+      i.runOnMainSync(() -> assertTrue(canvas(host).curve.isCorner(1)));
+    } finally {
+      i.runOnMainSync(() -> {
+        canvas(host).cancelCurve();
+        host.finish();
+      });
+      await(host::isDestroyed);
+    }
+  }
+
+  @Test
   public void layeredFramesPlaybackArchiveRoundTripAndFullResolutionPng() throws Exception {
     AnimationActivity host = launch(null);
     Uri archive = null, png = null;
